@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import os
 import atexit
 import time, datetime, serial, os
 from gpiozero import CPUTemperature
@@ -25,23 +24,23 @@ topics=["piTemp",
 client_id = 'RPI3B'
 
 def connect_mqtt():
-    def on_connect(client, userdata, flags, rc):
-        if rc == 0:
-            print("Connected to MQTT Broker!")
-        else:
-            print("Failed to connect, return code %d\n", rc)
-    # Set Connecting Client ID
-    client = mqtt_client.Client(client_id)
-    # client.username_pw_set(username, password)
-    client.on_connect = on_connect
-    client.connect(broker, port)
-    return client
+	def on_connect(client, userdata, flags, rc):
+		if rc == 0:
+			print("Connected to MQTT Broker!")
+		else:
+			print("Failed to connect, return code %d\n", rc)
+	# Set Connecting Client ID
+	client = mqtt_client.Client(client_id)
+	# client.username_pw_set(username, password)
+	client.on_connect = on_connect
+	client.connect(broker, port)
+	return client
 
 def publish(client, topic, msg):
-        result = client.publish(topic, msg)
-        if(result[0] != 0):
-                return False
-        return True
+		result = client.publish(topic, msg)
+		if(result[0] != 0):
+				return False
+		return True
 
 client = connect_mqtt()
 
@@ -75,20 +74,20 @@ def recconnectModbus():
 
 # Retry connection to charge controller if it fails.
 while(not a):
-        print("Failed to connect to the Charge Controller, retrying in 5 seconds...")
-        time.sleep(5)
-        a = modbus.connect()
+		print("Failed to connect to the Charge Controller, retrying in 5 seconds...")
+		time.sleep(5)
+		a = modbus.connect()
 
 # When program existes, close the modbus connection.
 def exit_handler():
-        print("\nClosing Modbus Connection...")
-        modbus.close()
+		print("\nClosing Modbus Connection...")
+		modbus.close()
 atexit.register(exit_handler)
 
 while 1:
 	try:
-		# Read 33 registers from the controller starting at address 0x0100 (Decimal 256) until 0x0121 (Decimal 289)
-		r = modbus.read_holding_registers(256, 34, unit=1)
+		# Read 33 registers from the controller starting at address 0x0100 (Decimal 256) until 0x0122 (Decimal 290)
+		r = modbus.read_holding_registers(256, 35, unit=1)
 
 		# Offset to apply when determining the charging mode.
 		# This only applies when the load is turned on since they share a register.
@@ -131,61 +130,60 @@ while 1:
 		publish(client, topics[11], round(float((r.registers[28]*65536 + r.registers[29])*0.001), 3))
 
 		# # Realtime information
-		# print("------------- Real Time Data -------------")
-		# print("Charging Mode:\t\t\t" + chargeMode)
-		# print("Battery SOC:\t\t\t" + str(r.registers[0]) + "%")
-		# print("Battery Voltage:\t\t" + str(round(float(r.registers[1]*0.1), 1)) + "V")
+		print("------------- Real Time Data -------------")
+		print("Charging Mode:\t\t\t" + chargeMode)
+		print("Battery SOC:\t\t\t" + str(r.registers[0]) + "%")
+		print("Battery Voltage:\t\t" + str(round(float(r.registers[1]*0.1), 1)) + "V")
 		print("Battery Charge Current:\t\t" + str(round(float(r.registers[2]*0.01), 2)) + "A")
-		# print("Controller Temperature:\t\t" + str(int(hex(r.registers[3])[2:-2], 16)) + "°C")
-		# print("Battery Temperature:\t\t" + str(int(hex(r.registers[3])[-2:], 16)) + "°C")
-		# # print("Load Voltage:\t\t\t" + str(round(float(r.registers[4]*0.1), 1)) + " Volts")
-		# # print("Load Current:\t\t\t" + str(round(float(r.registers[5]*0.01), 2)) + " Amps")
-		# # print("Load Power:\t\t\t" + str(r.registers[6]) + " Watts")
-		# # print("Load Enabled:\t\t\t" + str(loadStatus))
-		# print("Panel Volts:\t\t\t" + str(round(float(r.registers[7]*0.1), 1)) + "V")
-		# print("Panel Amps:\t\t\t" + str(round(float(r.registers[8]*0.01), 2)) + "A")
-		# print("Panel Power:\t\t\t" + str(r.registers[9]) + "W")
+		print("Controller Temperature:\t\t" + str(int(hex(r.registers[3])[2:-2], 16)) + "°C")
+		print("Battery Temperature:\t\t" + str(int(hex(r.registers[3])[-2:], 16)) + "°C")
+		print("Load Voltage:\t\t\t" + str(round(float(r.registers[4]*0.1), 1)) + " Volts")
+		print("Load Current:\t\t\t" + str(round(float(r.registers[5]*0.01), 2)) + " Amps")
+		print("Load Power:\t\t\t" + str(r.registers[6]) + " Watts")
+		print("Load Enabled:\t\t\t" + str(loadStatus))
+		print("Panel Volts:\t\t\t" + str(round(float(r.registers[7]*0.1), 1)) + "V")
+		print("Panel Amps:\t\t\t" + str(round(float(r.registers[8]*0.01), 2)) + "A")
+		print("Panel Power:\t\t\t" + str(r.registers[9]) + "W")
 
-		# # Data accumulated over the day
-		# print("--------------- DAILY DATA ---------------")
-		# print("Battery Minimum Voltage:\t" + str(round(float(r.registers[11]*0.1), 1)) + "V")
-		# print("Battery Maximum Voltage:\t" + str(round(float(r.registers[12]*0.1), 1)) + "V")
-		# print("Maximum Charge Current:\t\t" + str(round(float(r.registers[13]*0.01), 2)) + "A")
-		# print("Maximum Charge Power:\t\t" + str(r.registers[15]) + "W")
-		# # print("Maximum Load Discharge Current:\t" + str(float(r.registers[14])*0.01) + "A")
-		# # print("Maximum Load Discharge Power:\t" + str(r.registers[16]) + "W")
-		# print("Charge Amp Hours:\t\t" + str(r.registers[17]) + "Ah")
-		# print("Charge Power:\t\t\t" + str(round(float(r.registers[19]*0.001), 3)) + "KWh")
-		# # print("Load Amp Hours:\t\t\t" + str(r.registers[18]) + "Ah")
-		# # print("Load Power:\t\t\t" + str(round(float(r.registers[16]*0.001), 3)) + "KWh")
+		# Data accumulated over the day
+		print("--------------- DAILY DATA ---------------")
+		print("Battery Minimum Voltage:\t" + str(round(float(r.registers[11]*0.1), 1)) + "V")
+		print("Battery Maximum Voltage:\t" + str(round(float(r.registers[12]*0.1), 1)) + "V")
+		print("Maximum Charge Current:\t\t" + str(round(float(r.registers[13]*0.01), 2)) + "A")
+		print("Maximum Charge Power:\t\t" + str(r.registers[15]) + "W")
+		print("Maximum Load Discharge Current:\t" + str(float(r.registers[14])*0.01) + "A")
+		print("Maximum Load Discharge Power:\t" + str(r.registers[16]) + "W")
+		print("Charge Amp Hours:\t\t" + str(r.registers[17]) + "Ah")
+		print("Charge Power:\t\t\t" + str(round(float(r.registers[19]*0.001), 3)) + "KWh")
+		print("Load Amp Hours:\t\t\t" + str(r.registers[18]) + "Ah")
+		print("Load Power:\t\t\t" + str(round(float(r.registers[16]*0.001), 3)) + "KWh")
 
-		# # Data from the lifetime of the charge controller
-		# print("-------------- GLOBAL DATA ---------------")
-		# print("Days Operational:\t\t" + str(r.registers[21]) + " Days")
-		# print("Times Over Discharged:\t\t" + str(r.registers[22]))
-		# print("Times Fully Charged:\t\t" + str(r.registers[23]))
-		# print("Cummulative Amp Hours:\t\t" + str(round(float((r.registers[24]*65536 + r.registers[25])*0.001), 3)) + "KAh")
-		# print("Cummulative Power:\t\t" + str(round(float((r.registers[28]*65536 + r.registers[29])*0.001), 3)) + "KWh")
-		# # print("Load Amp Hours:\t\t\t" + str(round(float((r.registers[26]*65536 + r.registers[27])*0.001), 3)) + "KAh")
-		# # print("Load Power:\t\t\t" + str(round(float((r.registers[30]*65536 + r.registers[31])*0.001), 3)) + "KWh")
+		# Data from the lifetime of the charge controller
+		print("-------------- GLOBAL DATA ---------------")
+		print("Days Operational:\t\t" + str(r.registers[21]) + " Days")
+		print("Times Over Discharged:\t\t" + str(r.registers[22]))
+		print("Times Fully Charged:\t\t" + str(r.registers[23]))
+		print("Cummulative Amp Hours:\t\t" + str(round(float((r.registers[24]*65536 + r.registers[25])*0.001), 3)) + "KAh")
+		print("Cummulative Power:\t\t" + str(round(float((r.registers[28]*65536 + r.registers[29])*0.001), 3)) + "KWh")
+		print("Load Amp Hours:\t\t\t" + str(round(float((r.registers[26]*65536 + r.registers[27])*0.001), 3)) + "KAh")
+		print("Load Power:\t\t\t" + str(round(float((r.registers[30]*65536 + r.registers[31])*0.001), 3)) + "KWh")
 
 		# Check for controller faults and display them if there are any.
-		# print("----------------- FAULTS -----------------")
-		faultID = r.registers[33]
-		# if(r.registers[33] == 0):
-		#       print("None :)")
-		# else:
-		if(r.registers[33] != 0):
-				faults = ""
-				count = 0
-				while(faultID != 0):
-						if(faultID >= pow(2, 15-count)):
-								faults += faultCodes[count]
-								print("- " + faultCodes[count] + " (" + count + ")")
-								faultID -= pow(2, 15-count)
-						count += 1
-				publish(client, topics[12], faults)
-		# print("\n------------------------------------------\n")
+		print("----------------- FAULTS -----------------")
+		faultID = r.registers[34]
+		if(faultID == 0):
+			print("None :)")
+		else:
+			faults = ""
+			count = 0
+			while(faultID != 0):
+					if(faultID >= pow(2, 15-count)):
+							faults += faultCodes[count-1]
+							print("- " + faultCodes[count-1] + " (" + count + ")")
+							faultID -= pow(2, 15-count)
+					count += 1
+			publish(client, topics[12], faults)
+		print("\n------------------------------------------\n")
 		time.sleep(3)
 	except:
 		print("Failed to read data, reconnecting...")
