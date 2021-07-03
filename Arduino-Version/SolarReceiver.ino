@@ -343,10 +343,10 @@ void publishEverything(){
   // Publish battery charging current
   pub(10, (data.registers[2]*0.01));
 
-  // Publish battery temperature (will likely have issues <0 *C)
+  // Publish controller temperature (will likely have issues <0 *C)
   pub(11, (data.registers[3] >> 8));
   
-  // Publish controller temperature (will likely have issues <0 *C)
+  // Publish battery temperature (will likely have issues <0 *C)
   pub(12, (data.registers[3] & 0xFF));
 
   // Publish load voltage
