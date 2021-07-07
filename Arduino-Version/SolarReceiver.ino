@@ -88,7 +88,7 @@ const char* topics[42]={"dcAmpsB",                //0
                         "CCdailyPower",           //21
                         "CCnumDays",              //22
                         "CCnumOverCharges",       //23
-                        "CCnumFullCHarges",       //24
+                        "CCnumFullCharges",       //24
                         "CCtotalAmpHours",        //25
                         "CCtotalPower",           //26
                         "CCfault1",               //27
