@@ -1,4 +1,5 @@
-// This code runs on a NODEMCU 0.9 module.
+// Cole Lightfoot - 25th July 2021 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+// This code runs on an ESP8266 NODEMCU 0.9 module.
 // There are two arduinos inside the deck box and each one reads data from one of the two charge controllers (CC1 and CC2).
 // This data along with some other data such as environment sensor data and direct sensor measurements are then transmitted to this receiver.
 // This ESP8266 then proccesses the data from the transmitters and then publishes it to an MQTT server as well as diplays it on an attached LCD.
