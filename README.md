@@ -5,7 +5,7 @@ Work in progress, but the basic functionality works.
 
 I use two charge controllers for my solar system. One is for the front of the house (ML4860, aka: CC1) and the other is for the back (ML2440, aka: CC2).
 
-There are three arduinos, one talks to CC1, one talks to CC2 and the other receives data from both transmitters and publishes it to an MQTT server. The CC1 arduino also has some other sensors hooked up to it such as a BME680, ADS1115 and various current sensors. Each transmitter arduino has an RF24 module and a MAX3232 breakout module while the receiver has an RF24 module and a 20x4 character I2C LCD. The transmitter arduinos are arduino nanos and the receiver is a NodeMCU ESP8266.
+There are three arduinos, one talks to CC1, one talks to CC2 and the other receives data from both transmitters and publishes it to an MQTT server and displays some of it on an LCD. The CC1 arduino also has some other sensors hooked up to it such as a BME680, ADS1115 and various current sensors. Each transmitter arduino has an RF24 module and a MAX3232 breakout module while the receiver has an RF24 module and a 20x4 character I2C LCD. The transmitter arduinos are arduino nanos and the receiver is a NodeMCU ESP8266.
 
 The two transmitter arduinos will signal to each other via digital pins 6 and 7 to indicate whether or not they are transmitting data and if the other one is transmitting it will wait to avoid interference.
 
