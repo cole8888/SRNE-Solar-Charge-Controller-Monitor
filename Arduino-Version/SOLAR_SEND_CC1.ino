@@ -1,4 +1,4 @@
-// Cole Lightfoot - 22nd June 2021 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+// Cole Lightfoot - 25th July 2021 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
 // This is intended to run on an arduino nano. Mine uses the old bootloader.
 // Tested on both SRNE ML4860 and ML2440.
 
