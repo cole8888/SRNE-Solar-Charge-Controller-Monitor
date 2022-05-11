@@ -1,4 +1,4 @@
-// Cole Lightfoot - 25th July 2021 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+// Cole Lightfoot - 11th May 2022 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
 // This code runs on an ESP8266 NODEMCU 0.9 module.
 // There are two arduinos inside the deck box and each one reads data from one of the two charge controllers (CC1 and CC2).
 // This data along with some other data such as environment sensor data and direct sensor measurements are then transmitted to this receiver.
@@ -253,8 +253,13 @@ void printLCD(){
     lcd.print(data.temp,1);
     lcd.write(1); // Write the degC symbol (degrees Celsius)
     lcd.print(" Gas:");
-    if(data.gas>=1000){
-        lcd.print(data.gas/1000, 1);
+    if(data.gas>=1000){ // Handle case where too large values will cause display overflow.
+		if(data.gas>=10000){
+			lcd.print(data.gas/1000, 0);
+		}
+		else{
+			lcd.print(data.gas/1000, 1);
+		}
         lcd.print("M");
     }
     else{

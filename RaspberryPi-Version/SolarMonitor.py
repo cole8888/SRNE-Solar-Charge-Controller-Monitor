@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Cole Lightfoot - 25th July 2021 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+# Cole Lightfoot - 11th May 2022 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
 #
 # Used to gather data from SRNE charge controllers via modbus over RS232.
 #
@@ -11,9 +11,11 @@
 
 import atexit
 import time
-from gpiozero import CPUTemperature
 from paho.mqtt import client as mqtt_client
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
+
+# Only if you want to use the cpu temperature printouts.
+#from gpiozero import CPUTemperature
 
 broker = '192.168.2.100'
 port = 1883
@@ -38,6 +40,23 @@ topics=["CC1chargingMode",        #0
 		"CC1totalAmpHours",       #18
 		"CC1totalPower",          #19
 		"CC1faults"]	          #20
+
+faultCodes = [
+    "Charge MOS short circuit",     #0
+    "Anti-reverse MOS short",       #1
+    "PV panel reversely connected", #2
+    "PV working point over voltage",#3
+    "PV counter current",           #4
+    "PV input side over-voltage",   #5
+    "PV input side short circuit",  #6
+    "PV input overpower",           #7
+    "Ambient temp too high",        #8
+    "Controller temp too high",     #9
+    "Load over-power/current",      #10
+    "Load short circuit",           #11
+    "Battery undervoltage warning", #12
+    "Battery overvoltage",          #13
+    "Battery over-discharge"]		#14
 
 client_id = 'RPI3B'
 
@@ -89,7 +108,7 @@ atexit.register(exit_handler)
 while 1:
 	try:
 		# Read 33 registers from the controller starting at address 0x0100 (Decimal 256) until 0x0122 (Decimal 290)
-		r = modbus.read_holding_registers(256, 34, unit=1)
+		r = modbus.read_holding_registers(256, 35, unit=1)
 
 		# Offset to apply when determining the charging mode.
 		# This only applies when the load is turned on since they share a register.
@@ -117,8 +136,24 @@ while 1:
 				chargeMode = "FLOAT"
 		elif(r.registers[32] == 6 + modeOffset):
 				chargeMode = "CURRENT_LIMITING"
+
+		# Determine if there are any faults / what they mean.
+		faults = "None :)"
+		faultID = r.registers[34]
+		if(faultID != 0):
+			faults = ""
+			count = 0
+			while(faultID != 0):
+				if(faultID >= pow(2, 15-count)):
+					# If there is more than one error, make a new line.
+					if(count > 0):
+						faults += '\n'
+					faults += '- ' + faultCodes[count-1]
+					faultID -= pow(2, 15-count)
+				count += 1
 		
-		print("CPU Temp:\t", CPUTemperature().temperature)
+		# If you want to also see the temperature of your RPI cpu.
+		# print("CPU Temp:\t", CPUTemperature().temperature)
 
 		# Publish data to MQTT
 		publish(client, topics[0], chargeMode)
@@ -183,6 +218,11 @@ while 1:
 		print("Load Power:\t\t\t" + str(round(float((r.registers[30]*65536 + r.registers[31])*0.001), 3)) + "KWh")
 		print("------------------------------------------")
 		
+		print("--------------- FAULT DATA ---------------")
+		print(faults)
+		print("RAW Fault Data:\t\t\t" + str(r.registers[34]))
+		print("------------------------------------------")
+
 		time.sleep(2)
 	except:
 		print("Failed to read data, reconnecting...", r)
