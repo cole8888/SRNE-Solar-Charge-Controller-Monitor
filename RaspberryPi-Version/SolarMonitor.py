@@ -105,6 +105,12 @@ def exit_handler():
 		modbus.close()
 atexit.register(exit_handler)
 
+def getRealTemp(temp):
+	if(temp/int(128) > 0){
+		return -(temp%128)
+	}
+	return temp
+
 while 1:
 	try:
 		# Read 33 registers from the controller starting at address 0x0100 (Decimal 256) until 0x0122 (Decimal 290)
@@ -160,8 +166,8 @@ while 1:
 		publish(client, topics[1], r.registers[0])										# Battery SOC
 		publish(client, topics[2], r.registers[1]*0.1)									# Battery VOlts
 		publish(client, topics[3], r.registers[2]*0.01)									# Charging Current
-		publish(client, topics[4], int(hex(r.registers[3])[2:-2], 16))					# Controller Temp
-		publish(client, topics[5], int(hex(r.registers[3])[-2:], 16))					# Battery Temp
+		publish(client, topics[4], getRealTemp(int(hex(r.registers[3])[2:-2], 16)))		# Controller Temp
+		publish(client, topics[5], getRealTemp(int(hex(r.registers[3])[-2:], 16)))		# Battery Temp
 		publish(client, topics[6], r.registers[7]*0.1)									# Panel Volts
 		publish(client, topics[7], r.registers[8]*0.01)									# Panel Current
 		publish(client, topics[8], r.registers[9])										# Panel Watts
@@ -184,8 +190,8 @@ while 1:
 		print("Battery SOC:\t\t\t" + str(r.registers[0]) + "%")
 		print("Battery Voltage:\t\t" + str(round(float(r.registers[1]*0.1), 1)) + "V")
 		print("Battery Charge Current:\t\t" + str(round(float(r.registers[2]*0.01), 2)) + "A")
-		print("Controller Temperature:\t\t" + str(int(hex(r.registers[3])[2:-2], 16)) + "°C")
-		print("Battery Temperature:\t\t" + str(int(hex(r.registers[3])[-2:], 16)) + "°C")
+		print("Controller Temperature:\t\t" + str(getRealTemp(int(hex(r.registers[3])[2:-2]), 16)) + "°C")
+		print("Battery Temperature:\t\t" + str(getRealTemp(int(hex(r.registers[3])[-2:]), 16)) + "°C")
 		print("Load Voltage:\t\t\t" + str(round(float(r.registers[4]*0.1), 1)) + " Volts")
 		print("Load Current:\t\t\t" + str(round(float(r.registers[5]*0.01), 2)) + " Amps")
 		print("Load Power:\t\t\t" + str(r.registers[6]) + " Watts")
