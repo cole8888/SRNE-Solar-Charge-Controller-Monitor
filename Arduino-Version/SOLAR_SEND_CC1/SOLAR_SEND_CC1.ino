@@ -247,25 +247,13 @@ void loop(){
         lastErrCnt = master.getErrCnt();
         
         // Get the BME680 data. This takes a while.
-        // static int32_t temp, humidity, pressure, gas;    // Store BME readings
         BME680.getSensorData(data.bmeTemp, data.bmeHum, data.bmePres, data.bmeGas); // Tell BME680 to begin measurement.
-        // data.bmeTemp = temp / 100.0;
-        // data.bmePres = pressure / 100.0;
-        // data.bmeHum = humidity / 1000.0;
-        // data.bmeGas = gas / 100.0;
 
-        // data.panelAmpsFrontA = data.panelAmpsFrontB = data.panelAmpsBack = data.batteryVolts = 0; // Input 0 of my ADC is broken, enable if you need this.
+        // data.batteryVolts = 0; // Input 0 of my ADC is broken, enable if you need this.
         data.panelAmpsFrontA = data.panelAmpsFrontB = data.panelAmpsBack = 0;
 
         // Do the ADC readings
         readADC();
-
-		Serial.print("FrontA");
-		Serial.println(data.panelAmpsFrontA);
-		Serial.print("FrontB");
-		Serial.println(data.panelAmpsFrontB);
-		Serial.print("Back");
-		Serial.println(data.panelAmpsBack);
 
         // // Print CC data (Troubleshooting)
         // for(int i = 0; i<NUM_REGISTERS_REQUEST1; i++){

@@ -68,7 +68,7 @@
 #define NUM_CHARGE_CONTROLLERS 2  // Number of connected nodes that will report charge controller data. Includes ones reporting misc data.
 #define CHARGE_MODE_TOPIC_INDEX 1 // Index of the Charging Mode topic. Need to keep track of this since pub() needs to treat it differently.
 #define MODBUS_ERR_TOPIC_INDEX 0  //
-#define RECEIVE_NODE_ADDR 0       // Address of node which will be receiving the data. (Adress of this node, don't change this).
+#define RECEIVE_NODE_ADDR 0       // Address of node which will be receiving the data. (Address of this node, don't change this).
 #define CC_TOPIC_PREFIX "CC"      // Prefix for all charge controller related MQTT topics. Will also have a number after this. Ex: CC1chargingMode.
 #define RF24_NETWORK_CHANNEL 90   // Channel the RF24 network should use.
 
@@ -181,6 +181,9 @@ byte degC[] = { // Degrees Celsius Symbol
 */
 float bmePres, bmeTemp, bmeHum, bmeGas;
 
+/*
+	Used to avoid trying to publish data to mqtt if it failed to connect on startup.
+*/
 short mqttConnected;
 
 // Create the LCD device.
