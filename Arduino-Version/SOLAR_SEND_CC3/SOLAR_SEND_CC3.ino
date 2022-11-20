@@ -1,7 +1,7 @@
 /*
     Cole L - 19th November 2022 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
     
-    This arduino is responsible for reporting the data from the second charge controller (SIDE).
+    This arduino is responsible for reporting the data from the third charge controller (BACK).
     
     This is intended to run on an arduino nano. Mine uses the old bootloader.
     Tested on both SRNE ML4860 and ML2440.
@@ -39,11 +39,11 @@
     Other settings.
 */
 #define RECEIVE_NODE_ADDR 0     // Address of the receiver node.
-#define THIS_NODE_ADDR 3        // Address of this node.
+#define THIS_NODE_ADDR 4        // Address of this node.
 #define RF24_NETWORK_CHANNEL 90 // Channel the RF24 network should use.
 #define REQUEST_DELAY 2000      // Delay in ms between requests to the charge controller over modbus.
 #define SETUP_FAIL_DELAY 2000   // Delay when retrying setup tasks.
-#define SETUP_FINISH_DELAY 2000 // Delay after finishing setup.
+#define SETUP_FINISH_DELAY 3000 // Delay after finishing setup.
 
 /*
     Describes the different states the program can be in. 
@@ -91,9 +91,9 @@ void setup(){
     mySerial.begin(9600);
 
     // Initialize the pins which are used to talk to the other transmitter to make sure they never transmit at the same time.
-    pinMode(NODE1_BUSY, INPUT);
-    pinMode(NODE2_BUSY, OUTPUT);
-    digitalWrite(NODE2_BUSY, LOW);
+    pinMode(NODE1_BUSY, OUTPUT);
+    pinMode(NODE2_BUSY, INPUT);
+    digitalWrite(NODE1_BUSY, LOW);
 
     // Initialize the RF24 radio and network.
     while(!radio.begin()){
