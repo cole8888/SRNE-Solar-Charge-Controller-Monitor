@@ -8,6 +8,8 @@
 # You may need to switch the serial device depending on what Pi or other device you are using.
 # 
 # MAX3232 breakout board is connected to the raspberry pi serial headers and to the charge controller RS232.
+#
+# If you are having trouble getting this to work create an issue and I'll see if I can help.
 
 import atexit
 import time
@@ -51,7 +53,7 @@ modbus = ModbusClient(method='rtu', port='/dev/ttyS0', baudrate=9600, stopbits =
 a = modbus.connect()
 
 # Used to reconnect on controller timeout.
-def recconnectModbus():
+def reconnectModbus():
     global a
     global modbus
     modbus = ModbusClient(method='rtu', port='/dev/ttyS0', baudrate=9600, stopbits = 1, bytesize = 8, parity = 'N', timeout = 5, unit = 1) 
@@ -129,10 +131,10 @@ while 1:
         print("Charge Amp Hours:\t\t" + str(response.registers[17]) + "Ah")
         print("Charge Power:\t\t\t" + str(round(float(response.registers[19]*0.001), 3)) + "KWh")
         print("Load Amp Hours:\t\t\t" + str(response.registers[18]) + "Ah")
-        print("Load Power:\t\t\t" + str(round(float(response.registers[16]*0.001), 3)) + "KWh")
+        print("Load Power:\t\t\t" + str(round(float(response.registers[20]*0.001), 3)) + "KWh")
 
         # Data from the lifetime of the charge controller
-        print("-------------- GLOBAL DATA ---------------")
+        print("------------- LIFETIME DATA --------------")
         print("Days Operational:\t\t" + str(response.registers[21]) + " Days")
         print("Times Over Discharged:\t\t" + str(response.registers[22]))
         print("Times Fully Charged:\t\t" + str(response.registers[23]))
@@ -150,5 +152,5 @@ while 1:
         time.sleep(DELAY_BETWEEN_REQUESTS)
     except Exception as e:
         print("Failed to read data, reconnecting...", e)
-        recconnectModbus()
+        reconnectModbus()
         time.sleep(DELAY_BETWEEN_REQUESTS)

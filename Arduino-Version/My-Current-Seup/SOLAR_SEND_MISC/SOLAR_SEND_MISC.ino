@@ -1,5 +1,5 @@
 /*
-    Cole L - 31st October 2022 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+    Cole L - 20th November 2022 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
 
     This arduino returns miscellaneous data from various sensors.
 
@@ -43,13 +43,15 @@
 /*
     Other settings.
 */
-#define RECEIVE_NODE_ADDR 0     // Address of the receiver node.
-#define THIS_NODE_ADDR 1        // Address of this node.
-#define RF24_NETWORK_CHANNEL 90 // Channel the RF24 network should use.
-#define REQUEST_DELAY 2000      // Delay in ms between requests to the charge controller over modbus.
-#define ADC_SAMPLES 30          // Number of times to read the ADS1115 ADC to get an average. (Keep below 255)
-#define ADC_DELAY 2             // Delay in ms between ADC readings to allow the ADC to settle.
-#define SETUP_FAIL_DELAY 2000
+#define RECEIVE_NODE_ADDR 0                   // Address of the receiver node.
+#define THIS_NODE_ADDR 1                      // Address of this node.
+#define RF24_NETWORK_CHANNEL 90               // Channel the RF24 network should use.
+#define REQUEST_DELAY 2000                    // Delay in ms between requests to the charge controller over modbus.
+#define ADC_SAMPLES 30                        // Number of times to read the ADS1115 ADC to get an average. (Keep below 255)
+#define ADC_DELAY 2                           // Delay in ms between ADC readings to allow the ADC to settle.
+#define SETUP_FAIL_DELAY 2000                 // Delay when retrying setup tasks.
+#define SETUP_FINISH_DELAY 100*THIS_NODE_ADDR // Delay after finishing setup. (Multiplied by address to to avoid interference on startup).
+
 /*
     Describes the different states the program can be in. 
 */
@@ -77,17 +79,17 @@ BME680_Class BME680;
 /*
     This is the structure which is transmitted from node1/charge controller 1 to the receiver.
     Front panel amps are split into two parts because the ACS724 only goes up to 30A and I needed 60A, so I placed two ACS724 sensors in parallel.
-    These are the raw sensor values (except BME680 ones) and they need to be translated into their actual values later.
+    These are the raw sensor values and they need to be translated into their actual values later.
 */
 typedef struct package{
     float panelAmpsBack;   // Measured Back panel amps (ACS712 current sensor)
     float panelAmpsFrontA; // Measured Front panel amps sensor 1/2 (ACS724 current sensor)
     float panelAmpsFrontB; // Measured Front panel amps sensor 1/2 (ACS724 current sensor)
-    // float batteryVolts;      // Measured battery voltage (ADS1115 and a voltage divider. R1=56K, R2=10K) // Input 0 of my ADC is broken, enable if you need this.
-    int32_t bmePres;         // Atmospheric pressure measured by BME680
-    int32_t bmeTemp;         // Air temperature measure by BME680
-    int32_t bmeHum;          // Air humidity measured by BME680
-    int32_t bmeGas;          // Volatile Organic Compounds measured in kOhms by BME680
+    // float batteryVolts;    // Measured battery voltage (ADS1115 and a voltage divider. R1=56K, R2=10K) // Input 0 of my ADC is broken, enable if you need this.
+    int32_t bmePres;       // Atmospheric pressure measured by BME680
+    int32_t bmeTemp;       // Air temperature measure by BME680
+    int32_t bmeHum;        // Air humidity measured by BME680
+    int32_t bmeGas;        // Volatile Organic Compounds measured in kOhms by BME680
 }Package;
 Package data;
 
@@ -140,7 +142,7 @@ void setup(){
     lastTime = millis();
     state = WAIT_BME680; 
 
-    delay(2000);
+    delay(SETUP_FINISH_DELAY);
 
     // Start the 4 second watchdog
     wdt_enable(WDTO_4S);

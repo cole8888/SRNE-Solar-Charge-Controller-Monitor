@@ -1,10 +1,10 @@
 /*
-    Cole L - 19th November 2022 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+    Cole L - 20th November 2022 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
     
-    This arduino is responsible for reporting the data from the second charge controller (SIDE).
+    This is an example to retrieve data from multiple charge controllers.
+	This is intended to be run on an Arduino nano, it will communicate with one charge controller and send the data to the receiver.
     
-    This is intended to run on an arduino nano. Mine uses the old bootloader.
-    Tested on both SRNE ML4860 and ML2440.
+    See images and schematic for wiring details.
 */
 
 #include <RF24.h>
@@ -14,10 +14,10 @@
 #include <avr/wdt.h>        // Watchdog timer.
 
 /*
-    Digital pins to send signals to the other node on the board. (Not used yet but I built it into the PCB)
+	Pins to use for software serial for talking to the charge controller through the MAX3232.
 */
-#define NODE1_BUSY 6
-#define NODE2_BUSY 7
+#define MAX3232_RX 2 // RX pin.
+#define MAX3232_TX 3 // TX pin.
 
 /*
     I had issues with the transmitter's Serial buffers running out of room when receiving more than 29 registers at once 
@@ -38,12 +38,12 @@
 /*
     Other settings.
 */
-#define RECEIVE_NODE_ADDR 0     // Address of the receiver node.
-#define THIS_NODE_ADDR 3        // Address of this node.
-#define RF24_NETWORK_CHANNEL 90 // Channel the RF24 network should use.
-#define REQUEST_DELAY 2000      // Delay in ms between requests to the charge controller over modbus.
-#define SETUP_FAIL_DELAY 2000   // Delay when retrying setup tasks.
-#define SETUP_FINISH_DELAY 2000 // Delay after finishing setup.
+#define RECEIVE_NODE_ADDR 0                    // Address of the receiver node.
+#define THIS_NODE_ADDR 1                       // Address of this node.
+#define RF24_NETWORK_CHANNEL 90                // Channel the RF24 network should use.
+#define REQUEST_DELAY 2000                     // Delay in ms between requests to the charge controller over modbus.
+#define SETUP_FAIL_DELAY 2000                  // Delay when retrying setup tasks.
+#define SETUP_FINISH_DELAY 100*THIS_NODE_ADDR  // Delay after finishing setup. (Multiplied by address to to avoid interference on startup).
 
 /*
     Describes the different states the program can be in. 
@@ -68,7 +68,7 @@ RF24 radio(9, 10); // CE, CSN
 RF24Network network(radio);
 
 // Create software serial for communicating with Charge Controller.
-SoftwareSerial mySerial(2, 3);
+SoftwareSerial mySerial(MAX3232_RX, MAX3232_TX);
 
 // Create modbus device
 Modbus master(0, mySerial);
@@ -89,11 +89,6 @@ void setup(){
 
     // Start the software serial for the modbus connection.
     mySerial.begin(9600);
-
-    // Initialize the pins which are used to talk to the other transmitter to make sure they never transmit at the same time.
-    pinMode(NODE1_BUSY, INPUT);
-    pinMode(NODE2_BUSY, OUTPUT);
-    digitalWrite(NODE2_BUSY, LOW);
 
     // Initialize the RF24 radio and network.
     while(!radio.begin()){
