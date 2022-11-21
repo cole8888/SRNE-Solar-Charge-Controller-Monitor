@@ -11,7 +11,7 @@ This is the version I actively use and have spent the most time on.
 I have included some examples to make getting started easier, I've also included my current setup for reference.
 There is a much more detailed README file in that directory.
 I also designed a custom PCB (PCB files are included):
-![PCB](./Arduino-Version/PCB%20and%20Schematic/PXL_20221116_032239785~2.jpg)
+![PCB](./Arduino-Version/My-Current-Seup/PCB%20and%20Schematic/Assembled-PCB.jpg)
 
 ### Other notes
 I've included the modbus manual in this repo if you want to have a look at it. My examples read all the registers I think are important, but there are lots of other registers which I haven't touched. Be careful, some of them can be written to!
