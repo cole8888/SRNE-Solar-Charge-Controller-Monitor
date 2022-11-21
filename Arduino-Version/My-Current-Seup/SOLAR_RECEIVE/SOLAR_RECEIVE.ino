@@ -1,5 +1,5 @@
 /*
-    Cole L - 19th November 2022 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+    Cole L - 20th November 2022 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
     
     For my application there are four arduinos inside a deck box, three of them read data from a charge controller that is attached to it (CC1, CC2, CC3),
     and the last one reads sensor data from a BME680 and a few ACS724 current sensors.
@@ -97,14 +97,14 @@ Package chargeControllerNodeData[NUM_CHARGE_CONTROLLERS];
     These are the raw sensor values and they need to be translated into their actual values later.
 */
 typedef struct package2{
-    float panelAmpsBack;    // Measured Back panel amps (ACS712 current sensor)
-    float panelAmpsFrontA;  // Measured Front panel amps sensor 1/2 (ACS724 curent sensor)
-    float panelAmpsFrontB;  // Measured Front panel amps sensor 1/2 (ACS724 curent sensor)
-    // float batteryVolts;      // Measured battery voltage (ADS1115 and a voltage divider. R1=56K, R2=10K) // Input 0 of my ADC is broken, enable if you need this.
-    int32_t bmePres;        // Atmospheric pressure measured by BME680
-    int32_t bmeTemp;        // Air temperature measured by BME680
-    int32_t bmeHum;         // Air humidity measured by BME680
-    int32_t bmeGas;         // Volatile Organic Compounds measured by BME680
+    float panelAmpsBack;   // Measured Back panel amps (ACS712 current sensor)
+    float panelAmpsFrontA; // Measured Front panel amps sensor 1/2 (ACS724 curent sensor)
+    float panelAmpsFrontB; // Measured Front panel amps sensor 1/2 (ACS724 curent sensor)
+    // float batteryVolts;     // Measured battery voltage (ADS1115 and a voltage divider. R1=56K, R2=10K) // Input 0 of my ADC is broken, enable if you need this.
+    int32_t bmePres;       // Atmospheric pressure measured by BME680
+    int32_t bmeTemp;       // Air temperature measured by BME680
+    int32_t bmeHum;        // Air humidity measured by BME680
+    int32_t bmeGas;        // Volatile Organic Compounds measured by BME680
 }Package2;
 Package2 miscNodeData;
 
@@ -136,7 +136,7 @@ const char* chargeControllerTopics[NUM_CC_MQTT_TOPICS]={
     "chargeAmpHours",       //14 Accumulated amp hours from today so far
     "dailyPower",           //15 Accumulated kilo watt hours from today so far
     "numDays",              //16 Number of days active
-    "numOverCharges",       //17 Number of times the battery has been overcharged
+    "numOverDischarges",    //17 Number of times the battery has been over discharged
     "numFullCharges",       //18 Number of times the battery has been fully charged
     "totalAmpHours",        //19 Total kilo amp hours accumulated over lifetime
     "totalPower",           //20 Total kilo watt hours accumulated over lifetime
@@ -545,7 +545,7 @@ void publishCC(int nodeId){
     // Publish number of days operational
     pub(16, *chargeControllerRegisterData[nodeId][21], nodeId);
 
-    // Publish number of battery over-charges
+    // Publish number of battery over-discharges
     pub(17, *chargeControllerRegisterData[nodeId][22], nodeId);
 
     // Publish number of battery full-charges
@@ -572,7 +572,7 @@ void publishCC(int nodeId){
 void loop(){
     network.update();
     if(network.available()){
-        while (network.available()) {
+        while(network.available()){
             RF24NetworkHeader header;                                             
             network.peek(header);
 
