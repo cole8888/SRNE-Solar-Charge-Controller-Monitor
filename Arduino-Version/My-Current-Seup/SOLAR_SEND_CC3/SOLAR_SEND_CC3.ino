@@ -14,7 +14,7 @@
 #include <avr/wdt.h>        // Watchdog timer.
 
 /*
-	Pins to use for software serial for talking to the charge controller through the MAX3232.
+    Pins to use for software serial for talking to the charge controller through the MAX3232.
 */
 #define MAX3232_RX 2 // RX pin.
 #define MAX3232_TX 3 // TX pin.
@@ -36,9 +36,9 @@
     Modbus Constants
 */
 /*
-	All charge controllers will respond to address 255 no matter what their actual address is, this is useful if you do not know what address to use.
-	The library I use will not work with address 255 initially and must be modified, see the README for details.
-	You can try using 1 here instead of 255 if you don't want to make changes to the library, but it is not guaranteed to work.
+    All charge controllers will respond to address 255 no matter what their actual address is, this is useful if you do not know what address to use.
+    The library I use will not work with address 255 initially and must be modified, see the README for details.
+    You can try using 1 here instead of 255 if you don't want to make changes to the library, but it is not guaranteed to work.
 */
 #define MODBUS_SLAVE_ADDR 255
 #define MODBUS_READ_CODE 3
@@ -53,6 +53,8 @@
 #define THIS_NODE_ADDR 4                       // Address of this node.
 #define RF24_NETWORK_CHANNEL 90                // Channel the RF24 network should use.
 #define REQUEST_DELAY 2000                     // Delay in ms between requests to the charge controller over modbus.
+#define REQUEST_DELAY_JITTER_MIN 0             // Minimum delay jitter in ms between requests. (Avoid nodes constantly transmitting at the same time).
+#define REQUEST_DELAY_JITTER_MAX 200           // Maximum delay jitter in ms between requests. (Avoid nodes constantly transmitting at the same time).
 #define SETUP_FAIL_DELAY 2000                  // Delay when retrying setup tasks.
 #define SETUP_FINISH_DELAY 100*THIS_NODE_ADDR  // Delay after finishing setup. (Multiplied by address to to avoid interference on startup).
 
@@ -71,8 +73,8 @@ enum STATE {
 STATE state;
 
 unsigned long lastTime; // Last time isTime() was run and returned 1.
-
 uint16_t lastErrCnt; // Used to keep tract of modbus errors so we can compare to see how many new errors were generated.
+long requestDelayJitter; // Used to help make transmitters not constantly transmit at the same time.
 
 // Create the RF24 radio and network.
 RF24 radio(9, 10); // CE, CSN
@@ -130,7 +132,10 @@ void setup(){
     master.setTimeOut(MODBUS_MASTER_TIMEOUT);
     lastTime = millis();
     lastErrCnt = 0;
-    state = WAIT_REQUEST1; 
+    state = WAIT_REQUEST1;
+
+    randomSeed(analogRead(0));
+    requestDelayJitter = getNewDelayJitter();
 
     delay(SETUP_FINISH_DELAY);
 
@@ -139,10 +144,17 @@ void setup(){
 }
 
 /*
+    Generate a new random request delay jitter.
+*/
+long getNewDelayJitter(){
+    return random(REQUEST_DELAY_JITTER_MIN, REQUEST_DELAY_JITTER_MAX);
+}
+
+/*
     millis() Rollover safe time delay tracking.
 */
 uint8_t isTime(){
-    if(millis() - lastTime >= REQUEST_DELAY){
+    if(millis() - lastTime >= REQUEST_DELAY + requestDelayJitter){
         lastTime = millis();
         return 1;
     }
@@ -203,6 +215,8 @@ void loop(){
         RF24NetworkHeader header(RECEIVE_NODE_ADDR);
         network.write(header, &data, sizeof(data));
         delay(10);
+
+        requestDelayJitter = getNewDelayJitter();
 
         // Return to original state.
         state = WAIT_REQUEST1;
