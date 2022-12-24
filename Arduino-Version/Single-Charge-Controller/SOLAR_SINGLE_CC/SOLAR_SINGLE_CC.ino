@@ -2,18 +2,18 @@
     Cole L - 24th December 2022 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
     
     This is an example to retrieve data from a single charge controller. All this program does is print the data to the console.
-	This should give you enough information on how to read the values so you can do more exciting stuff with the data.
-	I would suggest looking into setting up an MQTT server so you can view the data on other devices.
-	
-	See images and schematic for wiring details.
+    This should give you enough information on how to read the values so you can do more exciting stuff with the data.
+    I would suggest looking into setting up an MQTT server so you can view the data on other devices.
+    
+    See images and schematic for wiring details.
 */
 
 #include <ModbusRtu.h>      // Modbus for talking to charge controller.
 #include <SoftwareSerial.h> // Software serial for modbus.
-#include <math.h>			// Used for pow() when deceiphering fault data.
+#include <math.h>           // Used for pow() when deceiphering fault data.
 
 /*
-	Pins to use for software serial for talking to the charge controller through the MAX3232.
+    Pins to use for software serial for talking to the charge controller through the MAX3232.
 */
 #define MAX3232_RX 2 // RX pin. If following my ESP8266 instructions use D1 or 5.
 #define MAX3232_TX 3 // TX pin. If following my ESP8266 instructions use D2 or 4.
@@ -29,9 +29,9 @@
     Modbus Constants
 */
 /*
-	All charge controllers will respond to address 255 no matter what their actual address is, this is useful if you do not know what address to use.
-	The library I use will not work with address 255 initially and must be modified, see the README for details.
-	You can try using 1 here instead of 255 if you don't want to make changes to the library, but it is not guaranteed to work.
+    All charge controllers will respond to address 255 no matter what their actual address is, this is useful if you do not know what address to use.
+    The library I use will not work with address 255 initially and must be modified, see the README for details.
+    You can try using 1 here instead of 255 if you don't want to make changes to the library, but it is not guaranteed to work.
 */
 #define MODBUS_SLAVE_ADDR 255
 #define MODBUS_READ_CODE 3
@@ -60,8 +60,8 @@ const char* chargeModes[7]={
 };
 
 /*
-	Array of fault codes.
-	These are all the possible faults the charge controller can indicate.
+    Array of fault codes.
+    These are all the possible faults the charge controller can indicate.
 */
 const char* faultCodes[15] = {
     "Charge MOS short circuit",     // (16384 | 01000000 00000000)
@@ -96,7 +96,6 @@ enum STATE {
 STATE state;
 
 unsigned long lastTime; // Last time isTime() was run and returned 1.
-
 uint16_t lastErrCnt; // Used to keep tract of modbus errors so we can compare to see how many new errors were generated.
 
 // Create software serial for communicating with Charge Controller.
@@ -145,14 +144,14 @@ void setup(){
     lastErrCnt = 0;
     state = WAIT_REQUEST1;
 
-	// Make an array of pointers to make it easier to access the charge controller data.
+    // Make an array of pointers to make it easier to access the charge controller data.
     // Initialize pointers array for request1 registers.
     for(int i = 0; i<NUM_REGISTERS_REQUEST1; i++){
-		chargeControllerRegisterData[i] = &chargeControllerNodeData.request1[i];
+        chargeControllerRegisterData[i] = &chargeControllerNodeData.request1[i];
     }
     // Initialize pointers array for request2 registers.
     for(int i = 0; i<NUM_REGISTERS_REQUEST2; i++){
-		chargeControllerRegisterData[i + NUM_REGISTERS_REQUEST1] = &chargeControllerNodeData.request2[i];
+        chargeControllerRegisterData[i + NUM_REGISTERS_REQUEST1] = &chargeControllerNodeData.request2[i];
     }
 
     delay(SETUP_FINISH_DELAY);
@@ -177,194 +176,194 @@ int getRealTemp(int temp){
 }
 
 /*
-	Print all the charge controller data to the serial monitor.
+    Print all the charge controller data to the serial monitor.
 */
 void printAllData(){
-	Serial.println(F("------------- Real Time Data -------------"));
+    Serial.println(F("------------- Real Time Data -------------"));
 
-	// Print the charging mode of the charge controller:
-	int loadOffset = *chargeControllerRegisterData[32] > 6 ? 32768 : 0;
-	Serial.print(F("Charging Mode:\t\t\t"));
-	Serial.println(chargeModes[*chargeControllerRegisterData[32] - loadOffset]);
+    // Print the charging mode of the charge controller:
+    int loadOffset = *chargeControllerRegisterData[32] > 6 ? 32768 : 0;
+    Serial.print(F("Charging Mode:\t\t\t"));
+    Serial.println(chargeModes[*chargeControllerRegisterData[32] - loadOffset]);
 
-	// Print the battery state of charge:
-	Serial.print(F("Battery SOC:\t\t\t"));
-	Serial.print(*chargeControllerRegisterData[0]);
-	Serial.println(F("%"));
+    // Print the battery state of charge:
+    Serial.print(F("Battery SOC:\t\t\t"));
+    Serial.print(*chargeControllerRegisterData[0]);
+    Serial.println(F("%"));
 
-	// Print the battery voltage:
-	Serial.print(F("Battery Voltage:\t\t"));
-	Serial.print((*chargeControllerRegisterData[1]*0.1));
-	Serial.println(F("V"));
+    // Print the battery voltage:
+    Serial.print(F("Battery Voltage:\t\t"));
+    Serial.print((*chargeControllerRegisterData[1]*0.1));
+    Serial.println(F("V"));
 
-	// Print the battery charge current:
-	Serial.print(F("Battery Charge Current:\t\t"));
-	Serial.print((*chargeControllerRegisterData[2]*0.01));
-	Serial.println(F("A"));
+    // Print the battery charge current:
+    Serial.print(F("Battery Charge Current:\t\t"));
+    Serial.print((*chargeControllerRegisterData[2]*0.01));
+    Serial.println(F("A"));
 
-	// Print the controller temperature:
-	Serial.print(F("Controller Temperature:\t\t"));
-	Serial.print(getRealTemp(*chargeControllerRegisterData[3] >> 8));
-	Serial.println(F("*C"));
+    // Print the controller temperature:
+    Serial.print(F("Controller Temperature:\t\t"));
+    Serial.print(getRealTemp(*chargeControllerRegisterData[3] >> 8));
+    Serial.println(F("*C"));
 
-	// Print the battery temperature:
-	Serial.print(F("Battery Temperature:\t\t"));
-	Serial.print(getRealTemp(*chargeControllerRegisterData[3] & 0xFF));
-	Serial.println(F("*C"));
+    // Print the battery temperature:
+    Serial.print(F("Battery Temperature:\t\t"));
+    Serial.print(getRealTemp(*chargeControllerRegisterData[3] & 0xFF));
+    Serial.println(F("*C"));
 
-	// Print the load voltage:
-	Serial.print(F("Load Voltage:\t\t\t"));
-	Serial.print((*chargeControllerRegisterData[4]*0.1));
-	Serial.println(F("V"));
+    // Print the load voltage:
+    Serial.print(F("Load Voltage:\t\t\t"));
+    Serial.print((*chargeControllerRegisterData[4]*0.1));
+    Serial.println(F("V"));
 
-	// Print the load current:
-	Serial.print(F("Load Current:\t\t\t"));
-	Serial.print((*chargeControllerRegisterData[5]*0.01));
-	Serial.println(F("A"));
+    // Print the load current:
+    Serial.print(F("Load Current:\t\t\t"));
+    Serial.print((*chargeControllerRegisterData[5]*0.01));
+    Serial.println(F("A"));
 
-	// Print the load power:
-	Serial.print(F("Load Power:\t\t\t"));
-	Serial.print(*chargeControllerRegisterData[6]);
-	Serial.println(F("W"));
+    // Print the load power:
+    Serial.print(F("Load Power:\t\t\t"));
+    Serial.print(*chargeControllerRegisterData[6]);
+    Serial.println(F("W"));
 
-	// Print the panel volts:
-	Serial.print(F("Panel Volts:\t\t\t"));
-	Serial.print((*chargeControllerRegisterData[7]*0.1));
-	Serial.println(F("V"));
+    // Print the panel volts:
+    Serial.print(F("Panel Volts:\t\t\t"));
+    Serial.print((*chargeControllerRegisterData[7]*0.1));
+    Serial.println(F("V"));
 
-	// Print the panel amps:
-	Serial.print(F("Panel Amps:\t\t\t"));
-	Serial.print((*chargeControllerRegisterData[8]*0.01));
-	Serial.println(F("A"));
+    // Print the panel amps:
+    Serial.print(F("Panel Amps:\t\t\t"));
+    Serial.print((*chargeControllerRegisterData[8]*0.01));
+    Serial.println(F("A"));
 
-	// Print the panel power:
-	Serial.print(F("Panel Power: \t\t\t"));
-	Serial.print(*chargeControllerRegisterData[9]);
-	Serial.println(F("W"));
+    // Print the panel power:
+    Serial.print(F("Panel Power: \t\t\t"));
+    Serial.print(*chargeControllerRegisterData[9]);
+    Serial.println(F("W"));
 
-	Serial.println("--------------- DAILY DATA ---------------");
+    Serial.println("--------------- DAILY DATA ---------------");
 
-	// Print the daily battery minimum voltage:
-	Serial.print(F("Battery Minimum Voltage:\t"));
-	Serial.print((*chargeControllerRegisterData[11]*0.1));
-	Serial.println(F("V"));
+    // Print the daily battery minimum voltage:
+    Serial.print(F("Battery Minimum Voltage:\t"));
+    Serial.print((*chargeControllerRegisterData[11]*0.1));
+    Serial.println(F("V"));
 
-	// Print the daily battery minimum voltage:
-	Serial.print(F("Battery Maximum Voltage:\t"));
-	Serial.print((*chargeControllerRegisterData[12]*0.1));
-	Serial.println(F("V"));
+    // Print the daily battery minimum voltage:
+    Serial.print(F("Battery Maximum Voltage:\t"));
+    Serial.print((*chargeControllerRegisterData[12]*0.1));
+    Serial.println(F("V"));
 
-	// Print the daily maximum charge current:
-	Serial.print(F("Maximum Charge Current:\t\t"));
-	Serial.print((*chargeControllerRegisterData[13]*0.01));
-	Serial.println(F("A"));
+    // Print the daily maximum charge current:
+    Serial.print(F("Maximum Charge Current:\t\t"));
+    Serial.print((*chargeControllerRegisterData[13]*0.01));
+    Serial.println(F("A"));
 
-	// Print the daily maximum load current:
-	Serial.print(F("Maximum Load Discharge Current:\t"));
-	Serial.print((*chargeControllerRegisterData[14]*0.01));
-	Serial.println(F("A"));
+    // Print the daily maximum load current:
+    Serial.print(F("Maximum Load Discharge Current:\t"));
+    Serial.print((*chargeControllerRegisterData[14]*0.01));
+    Serial.println(F("A"));
 
-	// Print the daily maximum charge power: 
-	Serial.print(F("Maximum Charge Power:\t\t"));
-	Serial.print(*chargeControllerRegisterData[15]);
-	Serial.println(F("W"));
+    // Print the daily maximum charge power: 
+    Serial.print(F("Maximum Charge Power:\t\t"));
+    Serial.print(*chargeControllerRegisterData[15]);
+    Serial.println(F("W"));
 
-	// Print the daily maximum load power: 
-	Serial.print(F("Maximum Load Discharge Power:\t"));
-	Serial.print(*chargeControllerRegisterData[16]);
-	Serial.println(F("W"));
+    // Print the daily maximum load power: 
+    Serial.print(F("Maximum Load Discharge Power:\t"));
+    Serial.print(*chargeControllerRegisterData[16]);
+    Serial.println(F("W"));
 
-	// Print the daily charge amp hours:
-	Serial.print(F("Charge Amp Hours:\t\t"));
-	Serial.print(*chargeControllerRegisterData[17]);
-	Serial.println(F("Ah"));
+    // Print the daily charge amp hours:
+    Serial.print(F("Charge Amp Hours:\t\t"));
+    Serial.print(*chargeControllerRegisterData[17]);
+    Serial.println(F("Ah"));
 
-	// Print the daily load amp hours:
-	Serial.print(F("Load Amp Hours:\t\t\t"));
-	Serial.print(*chargeControllerRegisterData[18]);
-	Serial.println(F("Ah"));
+    // Print the daily load amp hours:
+    Serial.print(F("Load Amp Hours:\t\t\t"));
+    Serial.print(*chargeControllerRegisterData[18]);
+    Serial.println(F("Ah"));
 
-	// Print the daily charge power:
-	Serial.print(F("Charge Power:\t\t\t"));
-	Serial.print((*chargeControllerRegisterData[19]*0.001));
-	Serial.println(F("KWh"));
+    // Print the daily charge power:
+    Serial.print(F("Charge Power:\t\t\t"));
+    Serial.print((*chargeControllerRegisterData[19]*0.001));
+    Serial.println(F("KWh"));
 
-	// Print the daily load power:
-	Serial.print(F("Load Power:\t\t\t"));
-	Serial.print((*chargeControllerRegisterData[20]*0.001));
-	Serial.println(F("KWh"));
+    // Print the daily load power:
+    Serial.print(F("Load Power:\t\t\t"));
+    Serial.print((*chargeControllerRegisterData[20]*0.001));
+    Serial.println(F("KWh"));
 
-	Serial.println(F("------------- LIFETIME DATA --------------"));
+    Serial.println(F("------------- LIFETIME DATA --------------"));
 
-	// Print the number of days operational:
-	Serial.print(F("Days Operational:\t\t"));
-	Serial.print(*chargeControllerRegisterData[21]);
-	Serial.println(F("Days"));
+    // Print the number of days operational:
+    Serial.print(F("Days Operational:\t\t"));
+    Serial.print(*chargeControllerRegisterData[21]);
+    Serial.println(F("Days"));
 
-	// Print the number of times batteries were over discharged:
-	Serial.print(F("Times Over Discharged:\t\t"));
-	Serial.println(*chargeControllerRegisterData[22]);
+    // Print the number of times batteries were over discharged:
+    Serial.print(F("Times Over Discharged:\t\t"));
+    Serial.println(*chargeControllerRegisterData[22]);
 
-	// Print the number of times batteries were fully charges:
-	Serial.print(F("Times Fully Charged:\t\t"));
-	Serial.println(*chargeControllerRegisterData[23]);
+    // Print the number of times batteries were fully charges:
+    Serial.print(F("Times Fully Charged:\t\t"));
+    Serial.println(*chargeControllerRegisterData[23]);
 
-	// Print the cumulative amp hours:
-	Serial.print(F("Cumulative Amp Hours:\t\t"));
-	Serial.print(((*chargeControllerRegisterData[24]*65536 + *chargeControllerRegisterData[25])*0.001));
-	Serial.println(F("KAh"));
+    // Print the cumulative amp hours:
+    Serial.print(F("Cumulative Amp Hours:\t\t"));
+    Serial.print(((*chargeControllerRegisterData[24]*65536 + *chargeControllerRegisterData[25])*0.001));
+    Serial.println(F("KAh"));
 
-	// Print the cumulative load amp hours:
-	Serial.print(F("Load Amp Hours:\t\t\t"));
-	Serial.print(((*chargeControllerRegisterData[26]*65536 + *chargeControllerRegisterData[27])*0.001));
-	Serial.println(F("KAh"));
+    // Print the cumulative load amp hours:
+    Serial.print(F("Load Amp Hours:\t\t\t"));
+    Serial.print(((*chargeControllerRegisterData[26]*65536 + *chargeControllerRegisterData[27])*0.001));
+    Serial.println(F("KAh"));
 
-	// Print the cumulative power hours:
-	Serial.print(F("Cumulative Power:\t\t"));
-	Serial.print(((*chargeControllerRegisterData[28]*65536 + *chargeControllerRegisterData[29])*0.001));
-	Serial.println(F("KWh"));
+    // Print the cumulative power hours:
+    Serial.print(F("Cumulative Power:\t\t"));
+    Serial.print(((*chargeControllerRegisterData[28]*65536 + *chargeControllerRegisterData[29])*0.001));
+    Serial.println(F("KWh"));
 
-	// Print the cumulative load amp hours:
-	Serial.print(F("Load Power:\t\t\t"));
-	Serial.print(((*chargeControllerRegisterData[30]*65536 + *chargeControllerRegisterData[31])*0.001));
-	Serial.println(F("KWh"));
+    // Print the cumulative load amp hours:
+    Serial.print(F("Load Power:\t\t\t"));
+    Serial.print(((*chargeControllerRegisterData[30]*65536 + *chargeControllerRegisterData[31])*0.001));
+    Serial.println(F("KWh"));
 
-	Serial.println(F("--------------- FAULT DATA ---------------"));
+    Serial.println(F("--------------- FAULT DATA ---------------"));
 
-	// Determine if there are any faults / what they mean.
-	String faults = "- None :)";
-	int faultID = *chargeControllerRegisterData[34];
-	if(faultID != 0){
-		if(faultID > 16384 || faultID < 0){
-			faults = "- Invalid fault code!";
-		}
-		else{
-			faults = "";
-			int count = 0;
-			int faultCount = 0;
-			while(faultID != 0){
-				if(faultID >= pow(2, 15-count)){
-					// If there is more than one error, make a new line.
-					if(faultCount > 0){
-						faults += "\n";
-					}
-					faults += "- ";
-					faults += faultCodes[count-1];
-					faultID -= pow(2, 15-count);
-					faultCount++;
-				}
-				count++;
-			}
-		}
-	}
-	// Print the faults
-	Serial.println(F("Faults:"));
-	Serial.println(faults);
+    // Determine if there are any faults / what they mean.
+    String faults = "- None :)";
+    int faultID = *chargeControllerRegisterData[34];
+    if(faultID != 0){
+        if(faultID > 16384 || faultID < 0){
+            faults = "- Invalid fault code!";
+        }
+        else{
+            faults = "";
+            int count = 0;
+            int faultCount = 0;
+            while(faultID != 0){
+                if(faultID >= pow(2, 15-count)){
+                    // If there is more than one error, make a new line.
+                    if(faultCount > 0){
+                        faults += "\n";
+                    }
+                    faults += "- ";
+                    faults += faultCodes[count-1];
+                    faultID -= pow(2, 15-count);
+                    faultCount++;
+                }
+                count++;
+            }
+        }
+    }
+    // Print the faults
+    Serial.println(F("Faults:"));
+    Serial.println(faults);
 
-	// Print the raw fault data
-	Serial.print(F("RAW Fault Data:\t\t\t"));
-	Serial.println(*chargeControllerRegisterData[34]);
-	Serial.println(F("------------------------------------------\n"));
+    // Print the raw fault data
+    Serial.print(F("RAW Fault Data:\t\t\t"));
+    Serial.println(*chargeControllerRegisterData[34]);
+    Serial.println(F("------------------------------------------\n"));
 }
 
 void loop(){
@@ -403,13 +402,13 @@ void loop(){
         chargeControllerNodeData.modbusErrDiff = (uint16_t) (master.getErrCnt() - lastErrCnt);
         lastErrCnt = master.getErrCnt();
 
-		// Indicate if there was a problem talking to the charge controller.
-		if(chargeControllerNodeData.modbusErrDiff > 0){
-			Serial.println(F("Error when trying to communicate with the charge controller."));
-		}
+        // Indicate if there was a problem talking to the charge controller.
+        if(chargeControllerNodeData.modbusErrDiff > 0){
+            Serial.println(F("Error when trying to communicate with the charge controller."));
+        }
 
-		// As an example, print out all the data.
-		printAllData();
+        // As an example, print out all the data.
+        printAllData();
 
         // Return to original state.
         state = WAIT_REQUEST1;

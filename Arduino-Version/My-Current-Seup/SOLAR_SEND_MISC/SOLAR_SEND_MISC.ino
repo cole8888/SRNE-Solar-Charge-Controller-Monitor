@@ -145,7 +145,7 @@ void setup(){
     lastTime = millis();
     state = WAIT_BME680;
 
-	randomSeed(analogRead(0));
+    randomSeed(analogRead(0));
     requestDelayJitter = getNewDelayJitter();
 
     delay(SETUP_FINISH_DELAY);
@@ -203,7 +203,7 @@ void loop(){
         network.write(header, &data, sizeof(data));
         delay(10);
 
-		requestDelayJitter = getNewDelayJitter();
+        requestDelayJitter = getNewDelayJitter();
 
         // Return to original state
         state = WAIT_BME680;

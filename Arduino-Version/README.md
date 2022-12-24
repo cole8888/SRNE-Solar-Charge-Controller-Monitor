@@ -6,14 +6,16 @@ Depending on the device you want to use, the connections will be a bit different
 
 ### Libraries
 The libraries this project uses are:
-- https://github.com/smarmengol/Modbus-Master-Slave-for-Arduino (2 LINES MUST BE MODIFIED!)
+- https://github.com/smarmengol/Modbus-Master-Slave-for-Arduino (**2 LINES MUST BE MODIFIED!**)
 - https://github.com/nRF24/RF24 (Only for multiple controllers)
 - https://github.com/nRF24/RF24Network (Only for multiple controllers)
 - https://github.com/knolleary/pubsubclient (Only in my setup)
 - https://github.com/fdebrabander/Arduino-LiquidCrystal-I2C-library (Only in my setup)
+- https://github.com/Zanduino/BME680 (Only in my setup)
+- https://github.com/adafruit/Adafruit_ADS1X15 (Only in my setup)
 
-### Modbus library modifications
-The charge controllers will always respond to address 255. This is handy since some charge controllers appear to be using unexpected addresses. Unfortunately the library I am using for modbus does not initially support addresses above 247, so we need to make two small changes to it.
+#### Modbus library modifications
+The charge controllers will always respond to address 255. This is handy since some charge controllers appear to be using unknown addresses. Unfortunately the library I am using for modbus does not support addresses above 247, so we need to make two small changes to it.
 
 Open the your arduino libraries folder and open the `Modbus-Master-Slave-for-Arduino-master` folder, then `ModbusRtu.h`.
 Search for `247` and you should find these two sections:
@@ -23,7 +25,7 @@ Search for `247` and you should find these two sections:
 
 In each section change the `247` to `255`. Save and restart your Arduino IDE.
 
-If you already know the address of your charge controller (it is probably `1`) you do not need to make these changes to the library and you should update the Arduino sketch with the appropriate address.
+If you already know the address of your charge controller (it is probably `1`) you do not need to make these changes to the library and you should update the `MODBUS_SLAVE_ADDR` constant in the Arduino sketch with the appropriate address.
 
 ### Charge controller pinout
 Here is the pinout of the 6P6C connector on the charge controller as indicated by the modbus manual from SRNE.
@@ -31,7 +33,7 @@ Here is the pinout of the 6P6C connector on the charge controller as indicated b
 ![Controller Pinout](../Charge-Controller-Connector-Pinout.png)
 
 ### Charge controller cable to MAX3232
-Here is how I connect the charge controller to the MAX3232 breakout board. I used a male DB9 connector to plug into the breakout board and to connect it to the brad board, only the top row of contacts are used. My cable's wire colors may not match yours, check out 6P6C.jpg to compare yours against mine. (Note that the wire colors do not match their stereotypical roles. Blame whoever came up with the charge controller pinout)
+Here is how I connect the charge controller to the MAX3232 breakout board. I used a male DB9 connector to plug into the breakout board and to connect it to the brad board, only the top row of contacts are used. My cable's wire colors may not match yours, check out [6P6C-Connector.jpg](./6P6C-Connector.jpg) to compare yours against mine. (Note that the wire colors do not match their stereotypical roles. Blame whoever came up with the charge controller pinout)
 
 ![Charge controller to MAX3232 Breakout](./Single-Charge-Controller/Photos%20and%20Schematics/Cable-to-MAX3232-Breakout-Closeup.jpg)
 
@@ -56,8 +58,8 @@ You may want to use multiple charge controllers, in which case I would suggest h
 ## My current setup
 
 This is the version I currently use for my solar system.
-As such, this version isn't really intended to be immediately plug and play. While the transmitter code will not need to be tweaked very much, the receiver is quite specific to my application.
+As such, this version isn't really intended to be immediately plug and play. While the transmitter code is not too different, the receiver is quite specific to my application.
 
-For my application I use three charge controllers. There are panels on the front of the house (CC1), side (CC2), and back (CC3). Each charge controller has an Arduino nano attached to it and there is an additional arduino for reporting some miscellaneous environment readings and direct amp readings. The Arduinos relay the information back to a receiver node (ESP8266) using RF24 modules. The transmitter then publishes the data over MQTT to a server which hosts it on a web interface. I've also included the PCB I'm using.
+I use three charge controllers. There are panels on the front of the house (CC1), side (CC2), and back (CC3). Each charge controller has an Arduino nano attached to it and there is an additional arduino for reporting some miscellaneous sensor readings. The Arduinos send the information back to a receiver node (ESP8266) using RF24 modules. The transmitter then publishes the data over MQTT to a server which hosts it on a web interface. I've also included the PCB I'm using.
 
 ![PCB](./My-Current-Seup/PCB%20and%20Schematic/Assembled-PCB.jpg)
