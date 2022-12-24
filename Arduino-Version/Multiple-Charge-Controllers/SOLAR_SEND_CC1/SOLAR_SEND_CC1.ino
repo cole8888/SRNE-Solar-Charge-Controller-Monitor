@@ -1,5 +1,5 @@
 /*
-    Cole L - 20th November 2022 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+    Cole L - 24th December 2022 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
     
     This is an example to retrieve data from multiple charge controllers.
 	This is intended to be run on an Arduino nano, it will communicate with one charge controller and send the data to the receiver.
@@ -29,7 +29,12 @@
 /*
     Modbus Constants
 */
-#define MODBUS_SLAVE_ADDR 1
+/*
+	All charge controllers will respond to address 255 no matter what their actual address is, this is useful if you do not know what address to use.
+	The library I use will not work with address 255 initially and must be modified, see the README for details.
+	You can try using 1 here instead of 255 if you don't want to make changes to the library, but it is not guaranteed to work.
+*/
+#define MODBUS_SLAVE_ADDR 255
 #define MODBUS_READ_CODE 3
 #define MODBUS_REQUEST1_START_ADDR 256
 #define MODBUS_REQUEST2_START_ADDR 280

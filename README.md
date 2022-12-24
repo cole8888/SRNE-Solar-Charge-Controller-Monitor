@@ -11,6 +11,7 @@ This is the version I actively use and have spent the most time on.
 I have included some examples to make getting started easier, I've also included my current setup for reference.
 There is a much more detailed README file in that directory.
 I also designed a custom PCB (PCB files are included):
+
 ![PCB](./Arduino-Version/My-Current-Seup/PCB%20and%20Schematic/Assembled-PCB.jpg)
 
 ### Other notes

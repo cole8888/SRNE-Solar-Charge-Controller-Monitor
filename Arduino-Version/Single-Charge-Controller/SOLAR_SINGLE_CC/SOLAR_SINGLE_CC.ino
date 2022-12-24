@@ -1,5 +1,5 @@
 /*
-    Cole L - 20th November 2022 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+    Cole L - 24th December 2022 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
     
     This is an example to retrieve data from a single charge controller. All this program does is print the data to the console.
 	This should give you enough information on how to read the values so you can do more exciting stuff with the data.
@@ -15,8 +15,8 @@
 /*
 	Pins to use for software serial for talking to the charge controller through the MAX3232.
 */
-#define MAX3232_RX 2 // RX pin. If following my ESP8266 instructions use D1.
-#define MAX3232_TX 3 // TX pin. If following my ESP8266 instructions use D2.
+#define MAX3232_RX 2 // RX pin. If following my ESP8266 instructions use D1 or 5.
+#define MAX3232_TX 3 // TX pin. If following my ESP8266 instructions use D2 or 4.
 
 /*
     I had issues with the transmitter's Serial buffers running out of room when receiving more than 29 registers at once 
@@ -28,7 +28,12 @@
 /*
     Modbus Constants
 */
-#define MODBUS_SLAVE_ADDR 1
+/*
+	All charge controllers will respond to address 255 no matter what their actual address is, this is useful if you do not know what address to use.
+	The library I use will not work with address 255 initially and must be modified, see the README for details.
+	You can try using 1 here instead of 255 if you don't want to make changes to the library, but it is not guaranteed to work.
+*/
+#define MODBUS_SLAVE_ADDR 255
 #define MODBUS_READ_CODE 3
 #define MODBUS_REQUEST1_START_ADDR 256
 #define MODBUS_REQUEST2_START_ADDR 280
