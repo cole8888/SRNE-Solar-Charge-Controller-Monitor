@@ -4,13 +4,14 @@ Read data from SRNE solar charge controllers via modbus over RS232.
 This repository contains two setups for reading data from SRNE solar charge controllers. One for a raspberry pi and another based on an arduino network.
 
 ### Raspberry Pi Version
-Please note that all the raspberry pi version does is fetch the data from the controller and print it to screen. If you encounter any issues with it let me know, I have not been really been able to test it recently since I've switched to the arduino version.
+All the raspberry pi version does is fetch the data from the controller and print it to screen. If you encounter any issues with it let me know, I have not been really been able to test it recently since I've switched to the arduino version.
 
 ### Arduino Version
 This is the version I actively use and have spent the most time on.
 I have included some examples to make getting started easier, I've also included my current setup for reference.
 There is a much more detailed README file in that directory.
 I also designed a custom PCB (PCB files are included):
+
 ![PCB](./Arduino-Version/My-Current-Seup/PCB%20and%20Schematic/Assembled-PCB.jpg)
 
 ### Other notes

@@ -1,9 +1,9 @@
 /*
-    Cole L - 20th November 2022 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
-    
+    Cole L - 24th December 2022 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+
     For my application there are four arduinos inside a deck box, three of them read data from a charge controller that is attached to it (CC1, CC2, CC3),
     and the last one reads sensor data from a BME680 and a few ACS724 current sensors.
-    
+
     This ESP8266 then processes the data from the transmitters and then publishes it to an MQTT server as well as displays it on an attached LCD.
 
     This code runs on an ESP8266 NODEMCU 0.9 module.
@@ -41,18 +41,18 @@
     In theory these should be 2.5 but my sensors kinda suck.
     Found experimentally, your numbers will differ.
 */
-#define FRONT_AMPS_SENSOR_A_OFFSET 2.23 
+#define FRONT_AMPS_SENSOR_A_OFFSET 2.23
 #define FRONT_AMPS_SENSOR_B_OFFSET 2.36
 #define BACK_AMPS_SENSOR_OFFSET 2.40
 
-/* 
+/*
     Multipliers for the ADC and Current sensors.
 */
 #define ADS1115_VPB 0.0001875 // Volts per bit of the ADS1115 ADC (6.144V/32768).
 #define ACS724_VPA 0.066      // Volts per amp of the ACS724 current sensor.
 
 /*
-    I had issues with the transmitter's Serial buffers running out of room when receiving more than 29 registers at once 
+    I had issues with the transmitter's Serial buffers running out of room when receiving more than 29 registers at once
     from the charge controller. Solved this by just sending two separate requests to get all the data I wanted.
 */
 #define NUM_REGISTERS_REQUEST1 24
@@ -206,9 +206,9 @@ PubSubClient client(MQTT_SERVER_ADDR, MQTT_PORT, wifiClient);
 void setup(){
     while (!Serial);
     Serial.begin(115200);
-    
+
     lcd.begin(); // Startup LCD
-    
+
     // Load custom characters into display ram.
     lcd.createChar(0, omegaSymbol);
     lcd.createChar(1, degC);
@@ -231,7 +231,7 @@ void setup(){
     while (WiFi.status() != WL_CONNECTED) {
         if(trys > WIFI_MAX_WAITS){
             lcd.clear();
-            lcd.setCursor(0,0);
+            lcd.setCursor(0, 0);
             lcd.print(F("WiFi Disconnected :("));
             lcd.setCursor(0, 1);
             lcd.print(F("Skipping MQTT..."));
@@ -305,7 +305,7 @@ int getRealTemp(int temp){
 */
 void getWattsForDisplay(char* wattsString, int nodeId){
     int watts = 0;
-    
+
     // Calculate the total across all charge controllers.
     if(nodeId < 0){
         for(int i = 0; i<NUM_CHARGE_CONTROLLERS; i++){
@@ -324,7 +324,7 @@ void getWattsForDisplay(char* wattsString, int nodeId){
     }
 
     snprintf(wattsString, WATTS_STRING_MAX_CHARS, "%dW", watts);
-    
+
     // Generate the correct spacing after the watts number.
     if(watts < 10){
         char space[4] = "   ";
@@ -383,7 +383,7 @@ void printLCD(){
     lcd.print(row2);
     lcd.setCursor((int)(strlen(&row2[0])), 1);
     lcd.write(1); // Write the degC symbol (degrees Celsius)
-    
+
     lcd.setCursor(0, 2);
     lcd.print(row3);
 
@@ -434,7 +434,7 @@ void pub(int topicIndex, float val, int nodeId=0){
     }
     else{
         char tempVal[16];
-        
+
         // Is this the modbus error topic?
         if(topicIndex == MODBUS_ERR_TOPIC_INDEX){
             snprintf(tempVal, sizeof(tempVal), "%d", chargeControllerNodeData[nodeId].modbusErrDiff);
@@ -456,6 +456,9 @@ void pub(int topicIndex, float val, int nodeId=0){
 
 // Coordinate publishing the misc data which is not from the charge controllers.
 void publishMiscData(){
+    if (!mqttConnected)
+        return; // Handle case where mqtt connection failed at initial startup, no point int trying to connect.
+
     pub(0 + NUM_CC_MQTT_TOPICS, miscNodeData.panelAmpsBack);
     pub(1 + NUM_CC_MQTT_TOPICS, miscNodeData.panelAmpsFrontA + miscNodeData.panelAmpsFrontB);
     // pub(2 + NUM_CC_MQTT_TOPICS, miscNodeData.dcVolts); // Input 0 of my ADC is broken, enable if you need this.
@@ -471,16 +474,16 @@ void publishMiscData(){
 */
 void publishCC(int nodeId){
     if(!mqttConnected) return; // Handle case where mqtt connection failed at initial startup, no point int trying to connect.
-    
+
     // Publish modbus error
     pub(0, 0, nodeId);
-    
+
     // Publish the charging mode of the charge controller.
     pub(1, 0, nodeId);
-    
+
     // Publish battery state of charge.
     pub(2, *chargeControllerRegisterData[nodeId][0], nodeId);
-    
+
     // Publish battery volts.
     pub(3, (*chargeControllerRegisterData[nodeId][1]*0.1), nodeId);
 
@@ -489,7 +492,7 @@ void publishCC(int nodeId){
 
     // Publish controller temperature.
     pub(5, getRealTemp(*chargeControllerRegisterData[nodeId][3] >> 8), nodeId); // Controller and battery temps share a single register.
-    
+
     // Publish battery temperature.
     pub(6, getRealTemp(*chargeControllerRegisterData[nodeId][3] & 0xFF), nodeId);
 
@@ -563,7 +566,7 @@ void publishCC(int nodeId){
     // // Publish total load power consumption.
     // pub(TOPIC_ID_HERE, ((*chargeControllerRegisterData[nodeId][30]*65536 + *chargeControllerRegisterData[nodeId][31])*0.001), nodeId);
 
-    // Register 32 is charging state which is handled in the first pub() call, 33 is reserved. 
+    // Register 32 is charging state which is handled in the first pub() call, 33 is reserved.
 
     // Publish fault data.
     pub(21, *chargeControllerRegisterData[nodeId][34], nodeId);
@@ -573,7 +576,7 @@ void loop(){
     network.update();
     if(network.available()){
         while(network.available()){
-            RF24NetworkHeader header;                                             
+            RF24NetworkHeader header;
             network.peek(header);
 
             // See which node this transmission is from.
@@ -581,10 +584,10 @@ void loop(){
             if(header.from_node <= NUM_MISC_DATA_NODES && header.from_node > 0){
                 // If multiple misc data nodes you may mant to treat them differently here.
                 // For my application I only have 1 misc node so I won't do that.
-                
+
                 network.read(header, &miscNodeData, sizeof(miscNodeData));
                 delay(10);
-                
+
                 // Convert the raw sensor data values from the transmitter into their actual values.
                 // miscNodeData.dcVolts = voltApprox(miscNodeData.dcVolts*ADS1115_VPB); // Input 0 of my ADC is broken, enable if you need this.
                 miscNodeData.panelAmpsFrontA = (FRONT_AMPS_SENSOR_A_OFFSET - miscNodeData.panelAmpsFrontA * ADS1115_VPB) / ACS724_VPA;

@@ -1,5 +1,5 @@
 /*
-    Cole L - 20th November 2022 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+    Cole L - 24th December 2022 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
 
     This arduino returns miscellaneous data from various sensors.
 
@@ -47,6 +47,8 @@
 #define THIS_NODE_ADDR 1                      // Address of this node.
 #define RF24_NETWORK_CHANNEL 90               // Channel the RF24 network should use.
 #define REQUEST_DELAY 2000                    // Delay in ms between requests to the charge controller over modbus.
+#define REQUEST_DELAY_JITTER_MIN 0             // Minimum delay jitter in ms between requests. (Avoid nodes constantly transmitting at the same time).
+#define REQUEST_DELAY_JITTER_MAX 200           // Maximum delay jitter in ms between requests. (Avoid nodes constantly transmitting at the same time).
 #define ADC_SAMPLES 30                        // Number of times to read the ADS1115 ADC to get an average. (Keep below 255)
 #define ADC_DELAY 2                           // Delay in ms between ADC readings to allow the ADC to settle.
 #define SETUP_FAIL_DELAY 2000                 // Delay when retrying setup tasks.
@@ -65,7 +67,8 @@ enum STATE {
 STATE state;
 
 unsigned long lastTime; // Last time isTime() was run and returned 1.
-const short int adcSamples = 30;
+long requestDelayJitter; // Used to help make transmitters not constantly transmit at the same time.
+
 // Create the RF24 radio and network
 RF24 radio(9, 10);    // CE, CSN
 RF24Network network(radio);
@@ -95,16 +98,16 @@ Package data;
 
 // Read the ADC data.
 void readADC(){
-    for(short int samples = 0; samples < adcSamples; samples++){
+    for(short int samples = 0; samples < ADC_SAMPLES; samples++){
         data.panelAmpsFrontA += ads1115.readADC_SingleEnded(FRONT_PANELS_A_ADS1115);
         data.panelAmpsFrontB += ads1115.readADC_SingleEnded(FRONT_PANELS_B_ADS1115);
         data.panelAmpsBack += ads1115.readADC_SingleEnded(BACK_PANELS_ADS1115);
         delay(ADC_DELAY); // Let the ADC settle down before the next sample.
     }
     // Average out the samples
-    data.panelAmpsFrontA = data.panelAmpsFrontA / (float)adcSamples;
-    data.panelAmpsFrontB = data.panelAmpsFrontB / (float)adcSamples;
-    data.panelAmpsBack = data.panelAmpsBack / (float)adcSamples;
+    data.panelAmpsFrontA = data.panelAmpsFrontA / (float)ADC_SAMPLES;
+    data.panelAmpsFrontB = data.panelAmpsFrontB / (float)ADC_SAMPLES;
+    data.panelAmpsBack = data.panelAmpsBack / (float)ADC_SAMPLES;
 }
 
 void setup(){
@@ -140,7 +143,10 @@ void setup(){
     network.begin(RF24_NETWORK_CHANNEL, THIS_NODE_ADDR);
     
     lastTime = millis();
-    state = WAIT_BME680; 
+    state = WAIT_BME680;
+
+    randomSeed(analogRead(0));
+    requestDelayJitter = getNewDelayJitter();
 
     delay(SETUP_FINISH_DELAY);
 
@@ -149,10 +155,17 @@ void setup(){
 }
 
 /*
+    Generate a new random request delay jitter.
+*/
+long getNewDelayJitter(){
+    return random(REQUEST_DELAY_JITTER_MIN, REQUEST_DELAY_JITTER_MAX);
+}
+
+/*
     millis() Rollover safe time delay tracking.
 */
 uint8_t isTime(){
-    if(millis() - lastTime >= REQUEST_DELAY){
+    if(millis() - lastTime >= REQUEST_DELAY + requestDelayJitter){
         lastTime = millis();
         return 1;
     }
@@ -189,6 +202,8 @@ void loop(){
         RF24NetworkHeader header(RECEIVE_NODE_ADDR);
         network.write(header, &data, sizeof(data));
         delay(10);
+
+        requestDelayJitter = getNewDelayJitter();
 
         // Return to original state
         state = WAIT_BME680;
