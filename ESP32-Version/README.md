@@ -36,7 +36,9 @@ Each PCB can handle 1 to 6 charge controllers at once!
 ![PCB](./PCB%20and%20Schematic/ESP32-Assembled-PCB.jpg)
 
 ### Hardware:
-You can find the PCB files and schematics in this directory. This list is for a fully populated PCB, you may not need everything here, see schematic for details.
+You can find the PCB files and schematics in this directory.
+
+This list is for a fully populated PCB, you may not need everything here, see schematic for details.
 
 NOTE: If you do plan to use my PCB, make sure you verify the footprint of the ESP32 you plan to use. The ones I have are a bit narrower than most, so you may need to adjust the footprint.
 - 1 x [ESP32 DevKit Narrow](https://www.amazon.ca/gp/product/B07QCP2451/) (Unless you adjusted the PCB footprint yourself)

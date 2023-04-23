@@ -1,7 +1,7 @@
 /*
     Cole L - 23 April 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
     
-    This is a simplified example program to use an ESP32 to read data from a single SRNE solar charge controllers and print it to the console.
+    This is a simplified example program to use an ESP32 to read data from a single SRNE solar charge controller and print it to the console.
     For multiple controllers and more features check out My-Current-Setup-ESP32.
 
     This example uses HardwareSerial to connect to a single charge controller on GPIO pins 16 (RX) and 17 (TX)

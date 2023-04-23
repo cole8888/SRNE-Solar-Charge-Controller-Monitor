@@ -9,7 +9,7 @@ I'd recommend going with the ESP32 version.
 All the raspberry pi version does is fetch the data from the controller and print it to screen. If you encounter any issues with it let me know, I have not been really been able to test it recently since I've switched to the arduino version.
 
 ### [ESP32 Version (v2.1)](./ESP32-Version/)
-This is the version I actively use. I strongly recommend using this version over the Arduino version as it should be much easier to implement and work with since it does not need one to use RF24 modules and multiple controllers and hook up to the ESP32 rather than one per arduino micro. It supports up to 6 charge controllers, and I've included my custom PCB design for it.
+This is the version I actively use. I strongly recommend using this version over the Arduino version as it should be much easier to implement and work with since it does not need RF24 modules or a receiver. It supports up to 6 charge controllers, and I've included my custom PCB design for it.
 There is a more detailed README in that directory.
 
 ![PCB](./ESP32-Version/PCB%20and%20Schematic/ESP32-Assembled-PCB.jpg)
