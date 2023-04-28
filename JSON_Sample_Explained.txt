@@ -1,0 +1,60 @@
+{
+    "modbusError": false,        // (Boolean) Was there a problem reading from the charge controller?
+    "controller": {              
+        "chargingMode": "FLOAT", // Charging mode being used right now.
+        "temperature": 21,       // (*C) Controller internal temperature.
+        "days": 1002,            // Lifetime count of the number of days the charge controller has been operational.
+        "overDischarges": 6,     // Lifetime count of times the batteries were over-discharged.
+        "fullCharges": 1477      // Lifetime count of times the batteries wre fully charged
+    },
+    "charging": {
+        "amps": 2.58,            // (A) Amp reading from charge controller to battery right now.
+        "maxAmps": 8.46,         // (A) Highest amp reading from charge controller to battery seen today.
+        "watts": 76,             // (W) Power generation right now.
+        "maxWatts": 251,         // (W) Highest power generation seen today.
+        "dailyAmpHours": 25,     // (Ah) Amp hours generated today.
+        "totalAmpHours": 51.734, // (kAh) Lifetime amp hours generated.
+        "dailyPower": 0.715,     // (kWh) Power generated today.
+        "totalPower": 1404.9     // (kWh) Lifetime power generated.
+    },
+    "battery": {
+        "stateOfCharge": 100,    // (%) Battery state of charge.
+        "volts": 28.2,           // (V) Battery voltage reading right now.
+        "minVolts": 24.4,        // (V) Minimum battery voltage seen today.
+        "maxVolts": 29.9,        // (V) Maximum battery voltage seen today.
+        "temperature": 11        // (*C) Battery temperature measured by attached probe.
+    },
+    "panels": {
+        "volts": 86.1,           // (V) Voltage reading from panels to charge controller.
+        "amps": 0.88             // (A) Amp reading from panels to charge controller.
+    },
+    "load": {
+        "state": true,           // (Boolean) Load state. 
+        "volts": 28.2,           // (V) Load voltage reading right now.
+        "amps": 0,               // (A) Load amp reading right now.
+        "watts": 0,              // (W) Load power draw right now.
+        "maxAmps": 0,            // (A) Highest load amp reading seen today.
+        "maxWatts": 0,           // (W) Highest load power draw seen today.
+        "dailyAmpHours": 0,      // (Ah) Load amp hours used today.
+        "totalAmpHours": 0.001,  // (kAh) Lifetime load amp hours.
+        "dailyPower": 0,         // (kWh) Load power used today.
+        "totalPower": 0.024      // (kWh) Lifetime load power consumption.
+    },
+    "faults": [                  // List of faults currently being reported by the controller.
+        "Charge MOS short circuit",
+        "Anti-reverse MOS short",
+        "PV panel reversely connected",
+        "PV working point over voltage",
+        "PV counter current",
+        "PV input side over-voltage",
+        "PV input side short circuit",
+        "PV input overpower",
+        "Ambient temp too high",
+        "Controller temp too high",
+        "Load over-power/current",
+        "Load short circuit",
+        "Battery undervoltage warning",
+        "Battery overvoltage",
+        "Battery over-discharge"
+    ]
+}
