@@ -1,0 +1,658 @@
+<!-- Cole L - April 28th 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor -->
+<!-- Originally based on https://github.com/fabaff/mqtt-panel -->
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="A web interface for MQTT over Websockets">
+
+		<title>Solar Box</title>
+
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />		
+		<link rel="stylesheet" href="./custom.css">
+
+		<script src=" https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.2/mqttws31.min.js"></script>
+		<script type="text/javascript" src="./index.js"></script>
+	</head>
+	<body>
+		<nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
+			<div class="container-fluid">
+				<a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="#">Solar Box</a>
+				<div class="d-flex justify-content-between ">
+					<div class="form-check form-switch me-3 mb-0">
+						<label class="form-check-label ms-3" for="lightSwitch">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="24"
+								height="24"
+								fill=white
+								class="bi bi-brightness-high"
+								viewBox="0 0 16 16"
+							>
+								<path id="sunMoon" d="" />
+							</svg>
+						</label>
+						<input
+						class="form-check-input"
+						type="checkbox"
+						id="lightSwitch"
+						style="margin-top: 6px"
+						/>
+					</div>
+				</div>
+			</div>
+		</nav>
+		<div class="container">
+			<!-- Overview, 15AMP Plug, 20AMP Plug -->
+			<div class="row" style="padding-top: 0.5rem;">
+				<!-- Overview section -->
+				<div class="col-12 col-xxl-6 col-xl-6 col-lg-6" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
+					<div class="card mb-2 custom-card-dark">
+						<div class="card-title" style="padding-top: 1rem; margin-bottom: 0.5rem; text-align: center;">
+							<h4><b>Overview</b></h4>
+						</div>
+						<div class="card-body" style="padding-top: 0rem; padding-bottom: 0.75rem;">
+							<div class="card-title">
+								<h6>Volts:
+									<span id="CC3battVoltsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2battVoltsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1battVoltsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>SOC:
+									<span id="CC3SOCLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2SOCLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1SOCLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Cumulative Panel Watts:
+									<span id="cumulativePowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Cumulative Plug Watts:
+									<span id="cumulativePlugPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Charge Watts:
+									<span id="CC3panelWattsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2panelWattsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1panelWattsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>							
+							<div class="card-title">
+								<h6>Batt Amps:
+									<span id="CC3battAmpsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2battAmpsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1battAmpsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Charge Mode:
+									<span id="CC3chargeModeLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2chargeModeLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1chargeModeLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Total Daily Power:
+									<span id="cumulativeDailyTotalPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Faults:
+									<span id="CC3anyFaults" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2anyFaults" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1anyFaults" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Min Volts:
+									<span id="CC3battMinVoltsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2battMinVoltsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1battMinVoltsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Max Volts:
+									<span id="CC3battMaxVoltsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2battMaxVoltsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1battMaxVoltsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- 15 AMP Plug Section -->
+				<div class="col-6 col-xxl-3 col-xl-3 col-lg-3 col-md-6 col-sm-6" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
+					<div class="card mb-2 custom-card-dark">
+						<div class="d-flex flex-column align-items-center">
+							<div class="card-title" style="padding-top: 1rem; margin-bottom: 0rem;">
+								<h4><b><a href="http://192.168.2.131">15 AMP</a></b></h4>
+							</div>
+							<div class="form-check form-switch plugSwitch">
+								<input
+									class="form-check-input"
+									type="checkbox"
+									id="15AMPSwitch"
+									style="float: none; cursor: pointer;"
+								/>
+							</div>
+							
+							<!-- Toggle confirmation modal -->
+							<div class="modal fade" id="modal15AMP" tabindex="-1" aria-labelledby="15AMPConfirmModalLabel" aria-hidden="true">
+								<div class="modal-dialog modal-dialog-centered">
+								<div class="modal-content custom-modal-light">
+									<div class="modal-header custom-modal-header-light">
+										<h1 class="modal-title fs-5 text-light" id="15AMPConfirmModalLabel">Are you sure?</h1>
+										<button type="button" class="btn-close custom-btn-close-light" data-bs-dismiss="modal" aria-label="Close"></button>
+									</div>
+									<div class="modal-body">
+										<p class="text-light">Are you sure you want to turn off the 15 AMP Plug?</p>
+									</div>
+									<div class="modal-footer custom-modal-header-light">
+										<button type="button" class="btn btn-secondary" id="15AMPCancel" data-bs-dismiss="modal">Cancel</button>
+										<button type="button" class="btn btn-primary" id="15AMPConfirm" data-bs-dismiss="modal">Yes</button>
+									</div>
+								</div>
+								</div>
+							</div>
+						</div>
+						<div class="card-body", style="padding-top: 0rem; padding-bottom: 0.75rem;">
+							<div class="card-title">
+								<h6>State:<span id="Plug15AMPPowerStatusLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Power: <span id="Plug15AMPPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Current: <span id="Plug15AMPCurrentLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Voltage: <span id="Plug15AMPVoltageLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Today: <span id="Plug15AMPTodayPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Total: <span id="Plug15AMPTotalPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Power Factor: <span id="Plug15AMPFactorLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Apparent Pwr: <span id="Plug15AMPApparentPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Reactive Pwr: <span id="Plug15AMPReactivePowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- 20 AMP Plug Section -->
+				<div class="col-6 col-xxl-3 col-xl-3 col-lg-3 col-md-6 col-sm-6" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
+					<div class="card mb-2 custom-card-dark">
+						<div class="d-flex flex-column align-items-center">
+							<div class="card-title" style="padding-top: 1rem; margin-bottom: 0rem;">
+								<h4><b><a href="http://192.168.2.107">20 AMP</a></b></h4>
+							</div>
+							<div class="form-check form-switch plugSwitch">
+								<input
+									class="form-check-input"
+									type="checkbox"
+									id="20AMPSwitch"
+									style="float: none; cursor: pointer;"
+								/>
+							</div>
+
+							<!-- Toggle confirmation modal -->
+							<div class="modal fade" id="modal20AMP" tabindex="-1" aria-labelledby="20AMPConfirmModalLabel" aria-hidden="true">
+								<div class="modal-dialog modal-dialog-centered">
+								<div class="modal-content custom-modal-light">
+									<div class="modal-header custom-modal-header-light">
+										<h1 class="modal-title fs-5 text-light" id="20AMPConfirmModalLabel">Are you sure?</h1>
+										<button type="button" class="btn-close custom-btn-close-light" data-bs-dismiss="modal" aria-label="Close"></button>
+									</div>
+									<div class="modal-body">
+										<p class="text-light">Are you sure you want to turn off the 20 AMP Plug?</p>
+									</div>
+									<div class="modal-footer custom-modal-header-light">
+										<button type="button" class="btn btn-secondary" id="20AMPCancel" data-bs-dismiss="modal">Cancel</button>
+										<button type="button" class="btn btn-primary" id="20AMPConfirm" data-bs-dismiss="modal">Yes</button>
+									</div>
+								</div>
+								</div>
+							</div>
+						</div>
+						<div class="card-body", style="padding-top: 0rem; padding-bottom: 0.75rem;">
+							<div class="card-title">
+								<h6>State:<span id="Plug20AMPPowerStatusLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Power: <span id="Plug20AMPPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Current: <span id="Plug20AMPCurrentLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Voltage: <span id="Plug20AMPVoltageLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Today: <span id="Plug20AMPTodayPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Total: <span id="Plug20AMPTotalPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Power Factor: <span id="Plug20AMPFactorLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Apparent Pwr: <span id="Plug20AMPApparentPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Reactive Pwr: <span id="Plug20AMPReactivePowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Water Heater Plug, AC/Heater Plug, HVAC Plug -->
+			<div class="row">
+				<!-- Water Heater Plug Section -->
+				<div class="col-6 col-lg-4 col-md-4 col-sm-6 col-xs-6" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
+					<div class="card mb-2 custom-card-dark">
+						<div class="d-flex flex-column align-items-center">
+							<div class="card-title" style="padding-top: 1rem; margin-bottom: 0rem;">
+								<h4><b><a href="http://192.168.2.118">Water Heater</a></b></h4>
+							</div>
+							<div class="form-check form-switch plugSwitch">
+								<input
+									class="form-check-input"
+									type="checkbox"
+									id="WaterHeaterSwitch"
+									style="float: none; cursor: pointer;"
+								/>
+							</div>	
+						</div>
+						<div class="card-body", style="padding-top: 0rem; padding-bottom: 0.75rem;">
+							<div class="card-title">
+								<h6>State:<span id="PlugWaterHeaterPowerStatusLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Power: <span id="PlugWaterHeaterPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Current: <span id="PlugWaterHeaterCurrentLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Voltage: <span id="PlugWaterHeaterVoltageLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Today: <span id="PlugWaterHeaterTodayPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Total: <span id="PlugWaterHeaterTotalPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Power Factor: <span id="PlugWaterHeaterFactorLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Apparent Pwr: <span id="PlugWaterHeaterApparentPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Reactive Pwr: <span id="PlugWaterHeaterReactivePowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- AC/Heater Plug Section -->
+				<div class="col-6 col-lg-4 col-md-4 col-sm-6" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
+					<div class="card mb-2 custom-card-dark">
+						<div class="d-flex flex-column align-items-center">
+							<div class="card-title" style="padding-top: 1rem; margin-bottom: 0rem;">
+								<h4><b><a href="http://192.168.2.119">AC/Heater</a></b></h4>
+							</div>
+							<div class="form-check form-switch plugSwitch">
+								<input
+									class="form-check-input"
+									type="checkbox"
+									id="AC-HeaterSwitch"
+									style="float: none; cursor: pointer;"
+								/>
+							</div>	
+						</div>
+						<div class="card-body", style="padding-top: 0rem; padding-bottom: 0.75rem;">
+							<div class="card-title">
+								<h6>State:<span id="PlugAC-HeaterPowerStatusLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Power: <span id="PlugAC-HeaterPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Current: <span id="PlugAC-HeaterCurrentLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Voltage: <span id="PlugAC-HeaterVoltageLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Today: <span id="PlugAC-HeaterTodayPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Total: <span id="PlugAC-HeaterTotalPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Power Factor: <span id="PlugAC-HeaterFactorLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Apparent Pwr: <span id="PlugAC-HeaterApparentPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Reactive Pwr: <span id="PlugAC-HeaterReactivePowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- HVAC Plug Section -->
+				<div class="col-12 col-lg-4 col-md-4 col-sm-12" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
+					<div class="card mb-2 custom-card-dark">
+						<div class="d-flex flex-column align-items-center">
+							<div class="card-title" style="padding-top: 1rem; margin-bottom: 0rem;">
+								<h4><b><a href="http://192.168.2.176">HVAC</a></b></h4>
+							</div>
+							<div class="form-check form-switch plugSwitch">
+								<input
+									class="form-check-input"
+									type="checkbox"
+									id="HVACSwitch"
+									style="float: none; cursor: pointer;"
+								/>
+							</div>	
+						</div>
+						<div class="card-body", style="padding-top: 0rem; padding-bottom: 0.75rem;">
+							<div class="card-title">
+								<h6>State:<span id="PlugHVACPowerStatusLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Power: <span id="PlugHVACPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Current: <span id="PlugHVACCurrentLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Voltage: <span id="PlugHVACVoltageLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Today: <span id="PlugHVACTodayPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Total: <span id="PlugHVACTotalPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Power Factor: <span id="PlugHVACFactorLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Apparent Pwr: <span id="PlugHVACApparentPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Reactive Pwr: <span id="PlugHVACReactivePowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Panels, Environment -->
+			<div class="row">
+				<!-- Panels Section -->
+				<div class="col-12 col-xl-6 col-lg-6 col-md-7" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
+					<div class="card mb-2 custom-card-dark">
+						<div class="card-title", style="padding-top: 1rem; margin-bottom: 0.5rem; text-align: center;">
+							<h4><b>Panels</b></h4>
+						</div>
+						<div class="card-body", style="padding-top: 0rem; padding-bottom: 0.75rem;">
+							<div class="card-title">
+								<h6>Panel Amps:
+									<span id="CC3panelAmpsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2panelAmpsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1panelAmpsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Panel Volts:
+									<span id="CC3panelVoltsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2panelVoltsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1panelVoltsLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Daily Max Watts:
+									<span id="CC3panelMaxPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2panelMaxPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1panelMaxPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							
+							<div class="card-title">
+								<h6>Daily Max Amps:
+									<span id="CC3battMaxChargeCurrentLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2battMaxChargeCurrentLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1battMaxChargeCurrentLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Daily Power:
+									<span id="CC3dailyPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2dailyPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1dailyPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Daily Amp Hours:
+									<span id="CC3dailyAmpHoursLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2dailyAmpHoursLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1dailyAmpHoursLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Total Power:
+									<span id="CC3totalPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2totalPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1totalPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Total Amp Hours:
+									<span id="CC3totalAmpHoursLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2totalAmpHoursLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1totalAmpHoursLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Over-Discharges:
+									<span id="CC3numOverDischargesLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2numOverDischargesLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1numOverDischargesLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Full Charges:
+									<span id="CC3numFullChargesLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2numFullChargesLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1numFullChargesLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Days Operational:
+									<span id="CC3numDaysLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2numDaysLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1numDaysLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+							</div>						
+						</div>
+					</div>
+				</div>
+				
+				<!-- Environment Section -->
+				<div class="col-12 col-lg-6 col-md-5" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
+					<div class="card mb-2 custom-card-dark">
+						<div class="card-title" style="padding-top: 1rem; margin-bottom: 0.5rem; text-align: center;">
+							<h4><b>Environment</b></h4>
+						</div>
+						<div class="card-body", style="padding-top: 0rem; padding-bottom: 0.75rem;">
+							<div class="card-title">
+								<h6>Box Temp: <span id="tempSensorLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Humidity: <span id="humLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Pressure: <span id="presLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>GAS (VOC):
+									<span id="gasLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>CC Temp:
+									<span id="CC3controllerTempLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2controllerTempLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1controllerTempLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Batt Temp:
+									<span id="CC3battTempLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC2battTempLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0.25rem;">⋅⋅⋅</span>
+									<span id="CC1battTempLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-left: 0rem;">⋅⋅⋅</span>
+								</h6>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Faults Section -->
+			<div class="row">
+				<div class="col-12 col-md-4" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
+					<div class="card mb-2 custom-card-dark">
+						<div class="card-title" style="padding-top: 1rem; margin-bottom: 0.5rem; text-align: center;">
+							<h4><b>CC1 Faults</b></h4>
+						</div>
+						<div class="card-body" style="padding-top: 0rem; padding-bottom: 0.75rem;">
+							<div class="card-title">
+								<h6><span id="CC1faults" style="text-align: left;">None :)</span></h6>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-md-4" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
+					<div class="card mb-2 custom-card-dark">
+						<div class="card-title", style="padding-top: 1rem; margin-bottom: 0.5rem; text-align: center;">
+							<h4><b>CC2 Faults</b></h4>
+						</div>
+						<div class="card-body" style="padding-top: 0rem; padding-bottom: 0.75rem;">
+							<div class="card-title">
+								<h6><span id="CC2faults" style="text-align: left;">None :)</span></h6>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-md-4" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
+					<div class="card mb-2 custom-card-dark">
+						<div class="card-title" style="padding-top: 1rem; margin-bottom: 0.5rem; text-align: center;">
+							<h4><b>CC3 Faults</b></h4>
+						</div>
+						<div class="card-body" style="padding-top: 0rem; padding-bottom: 0.75rem;">
+							<div class="card-title">
+								<h6><span id="CC3faults" style="text-align: left;">None :)</span></h6>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Status bar -->
+			<div id="status" class="alert" style="margin-top: 0.5rem; margin-left: -0.25rem; margin-right: -0.25rem;">
+				<small>Loading...</small>
+			</div>
+		</div>
+		<script src="./darkLightSwitch.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+	</body>
+</html>

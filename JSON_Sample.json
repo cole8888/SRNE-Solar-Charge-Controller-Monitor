@@ -1,0 +1,60 @@
+{
+    "modbusError": false,
+    "controller": {
+        "chargingMode": "FLOAT",
+        "temperature": 21,
+        "days": 1002,
+        "overDischarges": 6,
+        "fullCharges": 1477
+    },
+    "charging": {
+        "amps": 2.58,
+        "maxAmps": 8.46,
+        "watts": 76,
+        "maxWatts": 251,
+        "dailyAmpHours": 25,
+        "totalAmpHours": 51.734,
+        "dailyPower": 0.715,
+        "totalPower": 1404.9
+    },
+    "battery": {
+        "stateOfCharge": 100,
+        "volts": 28.2,
+        "minVolts": 24.4,
+        "maxVolts": 29.9,
+        "temperature": 11
+    },
+    "panels": {
+        "volts": 86.1,
+        "amps": 0.88
+    },
+    "load": {
+        "state": true,
+        "volts": 28.2,
+        "amps": 0,
+        "watts": 0,
+        "maxAmps": 0,
+        "maxWatts": 0,
+        "dailyAmpHours": 0,
+        "totalAmpHours": 0.001,
+        "dailyPower": 0,
+        "totalPower": 0.024
+    },
+    "faults": [
+        "Charge MOS short circuit",
+        "Anti-reverse MOS short",
+        "PV panel reversely connected",
+        "PV working point over voltage",
+        "PV counter current",
+        "PV input side over-voltage",
+        "PV input side short circuit",
+        "PV input overpower",
+        "Ambient temp too high",
+        "Controller temp too high",
+        "Load over-power/current",
+        "Load short circuit",
+        "Battery undervoltage warning",
+        "Battery overvoltage",
+        "Battery over-discharge"
+    ]
+}
