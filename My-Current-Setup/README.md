@@ -2,13 +2,13 @@
 
 This is the setup I currently use. Feel free to use it for inspiration!
 
-This version isn't intended to be immediately plug and play like the other examples as it is specific to my needs.
+This version isn't intended to be plug and play like the other examples as it is specific to my needs.
 
 ## Layout
 
-I have 3 solar charge controllers, one for the front, side, and back arrays. They feed into the ESP32 which collects the data and publishes it to an MQTT server which clients (such as the web-ui) can connect to.
+I have 3 solar charge controllers, one for the front, side, and back arrays. They feed into the ESP32 which collects the data and publishes it to an MQTT server that clients (such as the web-ui) can connect to.
 
-I also have an ESP8266 with an LCD attached which subscribes to the MQTT feed to display some power data in a convenient location around the house.
+I also have an ESP8266 with an LCD attached that subscribes to the MQTT feed to display some data in a convenient location around the house.
 
 ![Diagram](./Diagram.png)
 
@@ -30,17 +30,17 @@ The libraries this project uses are:
 
 ### PCB
 
-I designed a custom PCB for this, have a look at the PCB files and schematic [here](./PCB%20and%20Schematic/).
+I designed a custom PCB for this, have a look at the [PCB files and schematic](./PCB%20and%20Schematic/).
 
 Each PCB can handle up to 6 charge controllers at once!
 
 ![PCB](./PCB%20and%20Schematic/ESP32-Assembled-PCB.jpg)
 
+NOTE: If you do plan to use my PCB, make sure you verify the footprint of the ESP32 you plan to use. The ones I have are a bit narrower than most, so you may need to adjust the footprint.
+
 ### Components:
 
 This list is for a fully populated PCB, you may not need everything here, see schematic for details.
-
-NOTE: If you do plan to use my PCB, make sure you verify the footprint of the ESP32 you plan to use. The ones I have are a bit narrower than most, so you may need to adjust the footprint.
 
 - 1 x [ESP32 DevKit Narrow](https://www.amazon.ca/gp/product/B07QCP2451/) (Unless you adjusted the PCB footprint yourself)
 - 3 x [MAX3232](https://www.digikey.ca/en/products/detail/analog-devices-inc-maxim-integrated/MAX3232EEPE/1512691) (Or equivalent)
