@@ -1,4 +1,4 @@
-// Cole L - April 28th 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+// Cole L - 1st May 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
 // Originally based on https://github.com/fabaff/mqtt-panel
 
 const host = "192.168.2.50"; // MQTT Broker address
@@ -7,8 +7,8 @@ const useTLS = false;
 const cleansession = true;
 const reconnectTimeout = 2000;
 
-const MQTT_PASS = "CHANGE_ME!!!";
 const MQTT_USER = "CHANGE_ME!!!";
+const MQTT_PASS = "CHANGE_ME!!!";
 
 const COST_PER_KWH = 0.1227; // In dollars.
 

@@ -1,21 +1,40 @@
 /*
     Cole L - 1st May 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
 
-    This is an example to retrieve data from a single charge controller. All this program does is print the data to the console.
+    This is an example to retrieve data from a single charge controller and send it to an MQTT server.
     This should give you enough information on how to read the values so you can do more exciting stuff with the data.
 
     See images and schematic for wiring details.
 */
 
 #include <ArduinoJson.h>    // https://github.com/bblanchon/ArduinoJson
+#include <ESP8266WiFi.h>    // Enables The WiFi radio on the ESP8266.
 #include <ModbusMaster.h>   // https://github.com/4-20ma/ModbusMaster
-#include <SoftwareSerial.h> // Software serial for modbus.
+#include <PubSubClient.h>   // https://github.com/knolleary/pubsubclient
+#include <SoftwareSerial.h> // https://github.com/plerup/espsoftwareserial
+
+/*
+    WiFi Settings.
+*/
+#define WIFI_SSID "CHANGE_ME!!!"
+#define WIFI_PASS "CHANGE_ME!!!"
+
+/*
+    MQTT related settings. You many need to change these depending on your implementation.
+*/
+#define MQTT_PORT 1883                  // Port to use for MQTT.
+#define MQTT_SERVER_ADDR "192.168.2.50" // Address of the MQTT broker.
+#define MQTT_USER "CHANGE_ME!!!"        // Username for MQTT server.
+#define MQTT_PASS "CHANGE_ME!!!"        // Password for MQTT server.
+#define MQTT_CLIENT_ID "ESP32"          // Client identifier for MQTT.
+#define MQTT_TOPIC_NAME "CC1"           // MQTT Topic name to use.
+#define MQTT_RECONNECT_DELAY 5000       // Delay in ms before to wait before reconnecting to the MQTT server.
 
 /*
     Pins to use for software serial for talking to the charge controller through the MAX3232.
 */
-#define MAX3232_RX 2 // RX pin.
-#define MAX3232_TX 3 // TX pin.
+#define MAX3232_RX 5 // RX pin.
+#define MAX3232_TX 4 // TX pin.
 
 /*
     Modbus Constants
@@ -29,9 +48,10 @@
 /*
     Other settings.
 */
-#define REQUEST_DELAY 3000     // Delay in ms between requests to the charge controller over modbus.
-#define SETUP_FINISH_DELAY 100 // Delay in ms after finishing setup.
-#define JSON_BUFFER_SIZE 1024  // Maximum size for the JSON.
+#define REQUEST_DELAY 3000         // Delay in ms between requests to the charge controller over modbus.
+#define WIFI_SINGLE_WAIT_DELAY 500 // Delay in ms for a single wait for the wifi to connect (time for a "." to show up on console).
+#define SETUP_FINISH_DELAY 100     // Delay in ms after finishing setup.
+#define JSON_BUFFER_SIZE 2048      // Maximum size for the JSON.
 
 /*
     Describes the different states the program can be in.
@@ -79,6 +99,10 @@ const char *faultCodes[15] = {
     "Battery over-discharge"         // (1     | 00000000 00000001)
 };
 
+// Create the WiFi and MQTT clients.
+WiFiClient wifiClient;
+PubSubClient client(MQTT_SERVER_ADDR, MQTT_PORT, wifiClient);
+
 // Create the modbus node for the charge controller.
 ModbusMaster node;
 
@@ -94,12 +118,35 @@ uint8_t modbusErr;
 // Last time isTime() was run and returned 1.
 unsigned long lastTime;
 
+// Store the formatted json string for publishing over MQTT.
+char registerDataJson[JSON_BUFFER_SIZE];
+
 void setup() {
     Serial.begin(115200);
 
+    // Setup the WiFi and wait for connection.
+    WiFi.begin(WIFI_SSID, WIFI_PASS);
+    while (WiFi.status() != WL_CONNECTED) {
+        Serial.print(F("."));
+        delay(WIFI_SINGLE_WAIT_DELAY);
+    }
+    Serial.print(F("\nWiFi Connected\nIP: "));
+    Serial.println(WiFi.localIP());
+
+    // Connect to MQTT Broker.
+    if (!client.setBufferSize(JSON_BUFFER_SIZE)) {
+        Serial.println(F("MQTT buffer allocation failed! (Halting start-up)"));
+        while (1)
+            ;
+    }
+    while (!client.connect(MQTT_CLIENT_ID, MQTT_USER, MQTT_PASS)) {
+        Serial.println(F("MQTT Connection failed..."));
+        delay(MQTT_RECONNECT_DELAY);
+    }
+    Serial.println(F("MQTT Connected"));
+
     // Start the software serial for the modbus connection.
     mySerial.begin(9600);
-
     node.begin(MODBUS_SLAVE_ADDR, mySerial);
 
     state = WAIT;
@@ -107,6 +154,13 @@ void setup() {
     delay(SETUP_FINISH_DELAY);
 
     lastTime = millis();
+}
+
+/*
+    Helper function to handle the sign bit for negative temperatures.
+*/
+int getRealTemp(int temp) {
+    return temp / 128 ? -(temp % 128) : temp;
 }
 
 /*
@@ -121,14 +175,20 @@ uint8_t isTime() {
 }
 
 /*
-    Helper function to handle the sign bit for negative temperatures.
+    Publish the JSON data to MQTT.
 */
-int getRealTemp(int temp) {
-    return temp / 128 ? -(temp % 128) : temp;
+void pub() {
+    if (!client.publish(MQTT_TOPIC_NAME, registerDataJson)) {
+        // If error then try reconnecting and publishing again.
+        Serial.println(F("MQTT Failed to send"));
+        if (client.connect(MQTT_CLIENT_ID, MQTT_USER, MQTT_PASS)) {
+            client.publish(MQTT_TOPIC_NAME, registerDataJson);
+        }
+    }
 }
 
 /*
-    Convert the charge controller register data into a formatted JSON string and print to console.
+    Convert the charge controller register data into a formatted JSON string.
     Register addresses were figured out from the modbus document.
 */
 void registerToJson() {
@@ -192,8 +252,7 @@ void registerToJson() {
             count += 1;
         }
     }
-    serializeJsonPretty(doc, Serial);
-    Serial.println();
+    serializeJson(doc, registerDataJson);
 }
 
 /*
@@ -224,15 +283,32 @@ void readNode() {
     }
 }
 
+/*
+    Reconnect to the MQTT broker.
+*/
+void reconnectMQTT() {
+    while (!client.connected()) {
+        if (client.connect(MQTT_CLIENT_ID, MQTT_USER, MQTT_PASS)) {
+            Serial.println(F("MQTT Reconnected"));
+        } else {
+            Serial.print(F("MQTT Failed to reconnect: "));
+            Serial.println(client.state());
+            delay(MQTT_RECONNECT_DELAY);
+        }
+    }
+}
+
 void loop() {
-    if (state == WAIT && isTime()) {
+    if (!client.loop()) {
+        reconnectMQTT();
+    } else if (state == WAIT && isTime()) {
         state = QUERY;
     } else if (state == QUERY) {
         readNode();
         state = TRANSMIT;
     } else if (state == TRANSMIT) {
-        // Handle printing to console in this function.
         registerToJson();
+        pub();
         state = WAIT;
     } else {
         state = WAIT;

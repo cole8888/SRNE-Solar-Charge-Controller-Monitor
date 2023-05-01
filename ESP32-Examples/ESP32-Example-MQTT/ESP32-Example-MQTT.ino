@@ -1,14 +1,10 @@
 /*
-    Cole L - 28th April 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+    Cole L - 1st May 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
 
     This is a simplified example program to use an ESP32 to read data from a single SRNE solar charge controller and publish the data to an MQTT broker.
     For multiple controllers and more features check out My-Current-Setup-ESP32.
 
-    This example uses HardwareSerial to connect to a single charge controller on GPIO pins 16 (RX) and 17 (TX)
-
     See images and schematic for wiring details.
-
-    UNTESTED
 */
 
 /*
@@ -49,10 +45,10 @@
 /*
     Other settings.
 */
-#define REQUEST_DELAY 3000         // Minimum delay in ms between rounds of polling the charge controller.
+#define REQUEST_DELAY 3000         // Delay in ms between requests to the charge controller over modbus.
 #define WIFI_SINGLE_WAIT_DELAY 500 // Delay in ms for a single wait for the wifi to connect (time for a "." to show up on console).
 #define SETUP_FINISH_DELAY 100     // Delay in ms to wait after setup has finished to allow everything to settle down.
-#define JSON_BUFFER_SIZE 2048      // Maximum size for the JSON string. It's actually around ~1600.
+#define JSON_BUFFER_SIZE 2048      // Maximum size for the JSON.
 
 /*
     RX and TX pins for serial ports.
@@ -83,7 +79,7 @@ const char *chargeModes[7] = {
     "EQUALIZE", // 3
     "BOOST",    // 4
     "FLOAT",    // 5
-    "CUR-LIM"   // 6 (Current limiting)
+    "CUR_LIM"   // 6 (Current limiting)
 };
 
 /*
@@ -113,7 +109,7 @@ const char *faultCodes[15] = {
 WiFiClient wifiClient;
 PubSubClient client(MQTT_SERVER_ADDR, MQTT_PORT, wifiClient);
 
-// Create the modbus node the charge controller.
+// Create the modbus node for the charge controller.
 ModbusMaster node;
 
 // Store all the raw data collected from the charge controller.
@@ -238,7 +234,7 @@ void registerToJson() {
         panels["amps"] = chargeControllerRegisterData[8] * 0.01;
 
         JsonObject load = doc.createNestedObject("load");
-        load["state"] = chargeControllerRegisterData[10];
+        load["state"] = chargeControllerRegisterData[10] ? true : false;
         load["volts"] = chargeControllerRegisterData[4] * 0.1;
         load["amps"] = chargeControllerRegisterData[5] * 0.01;
         load["watts"] = chargeControllerRegisterData[6];
@@ -291,6 +287,9 @@ void readNode() {
     }
 }
 
+/*
+    Reconnect to the MQTT broker.
+*/
 void reconnectMQTT() {
     while (!client.connected()) {
         if (client.connect(MQTT_CLIENT_ID, MQTT_USER, MQTT_PASS)) {
@@ -306,10 +305,8 @@ void reconnectMQTT() {
 void loop() {
     if (!client.loop()) {
         reconnectMQTT();
-    } else if (state == WAIT) {
-        if (isTime()) {
-            state = QUERY;
-        }
+    } else if (state == WAIT && isTime()) {
+        state = QUERY;
     } else if (state == QUERY) {
         readNode();
         state = TRANSMIT;

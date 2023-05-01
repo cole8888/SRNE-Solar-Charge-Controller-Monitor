@@ -1,5 +1,5 @@
 # Raspberry Pi Version
-This is example fetches the data from the controller and prints it to the console. You have the option to print it out in a text or json format.
+This example fetches the data from the controller and prints it to the console. You have the option to print it out in a text or json format.
 
 If you encounter any issues, create an issue and I'll try to help.
 
@@ -7,7 +7,8 @@ If you encounter any issues, create an issue and I'll try to help.
 You will need to enable serial on the raspberry pi, I used this guide: https://pimylifeup.com/raspberry-pi-serial/
 
 ## Libraries
-You will need to install pymodbus (https://github.com/pymodbus-dev/pymodbus)
+- [pymodbus](https://github.com/pymodbus-dev/pymodbus)
+- [paho-mqtt](https://pypi.org/project/paho-mqtt/) (Only for MQTT version)
 
 ## Hardware:
 - 1 x Raspberry Pi

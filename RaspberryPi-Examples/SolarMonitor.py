@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Cole L - 24th April 2022 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+# Cole L - 1st May 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
 #
 # Used to gather data from SRNE charge controllers via modbus over RS232.
 #
@@ -16,8 +16,8 @@ import time
 import json
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 
-DELAY_BETWEEN_REQUESTS = 2    # Number of seconds to wait in between requests to the charge controller.
-JSON_OR_TEXT = "JSON"         # Output format, either "TEXT" or "JSON".
+DELAY_BETWEEN_REQUESTS = 3    # Number of seconds to wait in between requests to the charge controller.
+JSON_OR_TEXT = "TEXT"         # Output format, either "TEXT" or "JSON".
 
 # Array of charging mode strings.
 # These are the states the charge controller can be in when charging the battery.
@@ -50,7 +50,8 @@ faultCodes = [
 ]
 
 # Create ModbusClient instance and connect
-# MAX3232 Breakout board connects to the raspberry pi serial pins and to the charge controller RS232 port. See pictures for details.
+# MAX3232 Breakout board connects to the raspberry pi serial pins and to the charge controller RS232 port.
+# See pictures for details.
 modbus = ModbusClient(method='rtu', port='/dev/ttyS0', baudrate=9600, stopbits = 1, bytesize = 8, parity = 'N', timeout = 5, unit = 1) 
 a = modbus.connect()
 

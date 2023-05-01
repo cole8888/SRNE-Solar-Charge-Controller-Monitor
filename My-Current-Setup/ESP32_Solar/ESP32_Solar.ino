@@ -1,5 +1,5 @@
 /*
-    Cole L - 28th April 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+    Cole L - 1st May 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
 
     Retrieve data from SRNE solar charge controllers using an ESP32 and publish that data as JSON to an MQTT Server.
 
@@ -64,10 +64,10 @@
 #define NUM_CHARGE_CONTROLLERS 3                             // Number of charge controllers connected. Max of 6 without adjusting program.
 #define NUM_HW_SERIAL 1                                      // Number of charge controllers using HW Serial. Max of 2. 3 should be possible, but you will need to adjust the program.
 #define NUM_SW_SERIAL NUM_CHARGE_CONTROLLERS - NUM_HW_SERIAL // Number of charge controllers using software serial. Some controllers may not like SW serial, use HW instead.
-#define REQUEST_DELAY 3000                                   // Minimum delay in ms between rounds of polling all the charge controllers.
+#define REQUEST_DELAY 3000                                   // Delay in ms between rounds of polling all the charge controllers.
 #define WIFI_SINGLE_WAIT_DELAY 500                           // Delay in ms for a single wait for the wifi to connect (time for a "." to show up on console).
 #define SETUP_FINISH_DELAY 100                               // Delay in ms to wait after setup has finished to allow everything to settle down.
-#define JSON_BUFFER_SIZE 2048                                // Maximum size for the JSON string. It's actually around ~1600.
+#define JSON_BUFFER_SIZE 2048                                // Maximum size for the JSON string.
 
 /*
     Describes the different states the program can be in. Repeats for each controller.
@@ -90,7 +90,7 @@ const char *chargeModes[7] = {
     "EQUALIZE", // 3
     "BOOST",    // 4
     "FLOAT",    // 5
-    "CUR-LIM"   // 6 (Current limiting)
+    "CUR_LIM"   // 6 (Current limiting)
 };
 
 /*
@@ -339,6 +339,9 @@ void registerToJson() {
     serializeJson(doc, registerDataJson);
 }
 
+/*
+    Request data from the charge controller and store it.
+*/
 void readNode() {
     static uint32_t i;
     i++;
@@ -373,6 +376,9 @@ void readNode() {
     }
 }
 
+/*
+    Reconnect to the MQTT broker.
+*/
 void reconnectMQTT() {
     while (!client.connected()) {
         if (client.connect(MQTT_CLIENT_ID, MQTT_USER, MQTT_PASS)) {

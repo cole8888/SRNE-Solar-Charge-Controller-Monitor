@@ -1,14 +1,10 @@
 /*
-    Cole L - 28th April 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+    Cole L - 1st May 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
 
     This is a simplified example program to use an ESP32 to read data from a single SRNE solar charge controller and print it to the console.
     For multiple controllers and more features check out My-Current-Setup-ESP32.
 
-    This example uses HardwareSerial to connect to a single charge controller on GPIO pins 16 (RX) and 17 (TX)
-
     See images and schematic for wiring details.
-
-    UNTESTED
 */
 
 /*
@@ -30,9 +26,9 @@
 /*
     Other settings.
 */
-#define REQUEST_DELAY 3000     // Minimum delay in ms between rounds of polling all the charge controllers.
+#define REQUEST_DELAY 3000     // Delay in ms between requests to the charge controller over modbus.
 #define SETUP_FINISH_DELAY 100 // Delay in ms to wait after setup has finished to allow everything to settle down.
-#define JSON_BUFFER_SIZE 2048  // Maximum size for the JSON string. It's actually around ~1600.
+#define JSON_BUFFER_SIZE 2048  // Maximum size for the JSON.
 
 /*
     RX and TX pins for serial ports.
@@ -63,7 +59,7 @@ const char *chargeModes[7] = {
     "EQUALIZE", // 3
     "BOOST",    // 4
     "FLOAT",    // 5
-    "CUR-LIM"   // 6 (Current limiting)
+    "CUR_LIM"   // 6 (Current limiting)
 };
 
 /*
@@ -89,7 +85,7 @@ const char *faultCodes[15] = {
     "Battery over-discharge"         // (1     | 00000000 00000001)
 };
 
-// Create the modbus node the charge controller.
+// Create the modbus node for the charge controller.
 ModbusMaster node;
 
 // Store all the raw data collected from the charge controller.
@@ -100,9 +96,6 @@ uint8_t modbusErr;
 
 // Last time isTime() was run and returned 1.
 unsigned long lastTime;
-
-// Store the formatted json string for publishing over MQTT.
-char registerDataJson[JSON_BUFFER_SIZE];
 
 void setup() {
     Serial.begin(115200);
@@ -138,7 +131,7 @@ uint8_t isTime() {
 }
 
 /*
-    Convert the charge controller register data into a formatted JSON string.
+    Convert the charge controller register data into a formatted JSON string and print it to the console.
     Register addresses were figured out from the modbus document.
 */
 void registerToJson() {
@@ -180,7 +173,7 @@ void registerToJson() {
         panels["amps"] = chargeControllerRegisterData[8] * 0.01;
 
         JsonObject load = doc.createNestedObject("load");
-        load["state"] = chargeControllerRegisterData[10];
+        load["state"] = chargeControllerRegisterData[10] ? true : false;
         load["volts"] = chargeControllerRegisterData[4] * 0.1;
         load["amps"] = chargeControllerRegisterData[5] * 0.01;
         load["watts"] = chargeControllerRegisterData[6];
@@ -202,8 +195,8 @@ void registerToJson() {
             count += 1;
         }
     }
-    // serializeJson(doc, registerDataJson);
-    serializeJsonPretty(doc, registerDataJson);
+    serializeJsonPretty(doc, Serial);
+    Serial.println();
 }
 
 /*
@@ -235,19 +228,14 @@ void readNode() {
 }
 
 void loop() {
-    if (state == WAIT) {
-        if (isTime()) {
-            state = QUERY;
-        }
+    if (state == WAIT && isTime()) {
+        state = QUERY;
     } else if (state == QUERY) {
         readNode();
         state = TRANSMIT;
     } else if (state == TRANSMIT) {
+        // Print to console in this function.
         registerToJson();
-
-        // Just an example program, only print the data.
-        Serial.println(registerDataJson);
-
         state = WAIT;
     } else {
         state = WAIT;

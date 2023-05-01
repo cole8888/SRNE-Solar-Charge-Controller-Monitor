@@ -1,5 +1,5 @@
 /*
-    Cole L - 28th April 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+    Cole L - 1st May 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
 
     This ESP8266 subscribes to MQTT topics for charge controller data and Tasmota smart plug statistics.
 
@@ -20,11 +20,11 @@
 /*
     MQTT related settings. You many need to change these depending on your implementation.
 */
-#define MQTT_PORT 1883                   // Port to use for MQTT.
-#define MQTT_SERVER_ADDR "192.168.2.50"  // Address of the MQTT server.
-#define MQTT_USER "CHANGE_ME!!!"                 // Username for the MQTT server.
-#define MQTT_PASS "CHANGE_ME!!!" // Password for the MQTT server.
-#define MQTT_CLIENT_ID "ESP8266"         // Client identifier for MQTT.
+#define MQTT_PORT 1883                  // Port to use for MQTT.
+#define MQTT_SERVER_ADDR "192.168.2.50" // Address of the MQTT server.
+#define MQTT_USER "CHANGE_ME!!!"        // Username for the MQTT server.
+#define MQTT_PASS "CHANGE_ME!!!"        // Password for the MQTT server.
+#define MQTT_CLIENT_ID "ESP8266"        // Client identifier for MQTT.
 #define MQTT_RECONNECT_DELAY 5000
 #define NUM_MQTT_TOPICS 6
 
@@ -40,7 +40,7 @@
 #define WATTS_STRING_MAX_CHARS 6     // Maximum number of characters for the watts string for the lcd. Includes the W unit and null.
 #define NUM_CHARS_FOR_CC_COMPARE 3   // Number of characters in the topic name to compare when determining which charge controller a message came from.
 #define NUM_CHARS_FOR_PLUG_COMPARE 7 // Number of characters in the topic name to compare when determining which plug a message came from.
-#define CC_JSON_BUFFER_SIZE 2048     // Maximum size for the JSON string. It's actually around ~1600.
+#define CC_JSON_BUFFER_SIZE 2048     // Maximum size for the JSON string.
 #define PLUG_JSON_BUFFER_SIZE 2048   // Maximum size for the JSON string received from the plug.
 
 /*

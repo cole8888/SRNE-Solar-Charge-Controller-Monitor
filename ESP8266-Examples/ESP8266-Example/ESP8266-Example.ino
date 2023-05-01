@@ -9,13 +9,13 @@
 
 #include <ArduinoJson.h>    // https://github.com/bblanchon/ArduinoJson
 #include <ModbusMaster.h>   // https://github.com/4-20ma/ModbusMaster
-#include <SoftwareSerial.h> // Software serial for modbus.
+#include <SoftwareSerial.h> // https://github.com/plerup/espsoftwareserial
 
 /*
     Pins to use for software serial for talking to the charge controller through the MAX3232.
 */
-#define MAX3232_RX 2 // RX pin.
-#define MAX3232_TX 3 // TX pin.
+#define MAX3232_RX 5 // RX pin.
+#define MAX3232_TX 4 // TX pin.
 
 /*
     Modbus Constants
@@ -31,7 +31,7 @@
 */
 #define REQUEST_DELAY 3000     // Delay in ms between requests to the charge controller over modbus.
 #define SETUP_FINISH_DELAY 100 // Delay in ms after finishing setup.
-#define JSON_BUFFER_SIZE 1024  // Maximum size for the JSON.
+#define JSON_BUFFER_SIZE 2048  // Maximum size for the JSON.
 
 /*
     Describes the different states the program can be in.

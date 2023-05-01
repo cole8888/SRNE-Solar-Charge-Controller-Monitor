@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
-# Cole L - 24th April 2022 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+# Cole L - 1st May 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
 #
-# Used to gather data from SRNE charge controllers via modbus over RS232.
+# Used to gather data from SRNE charge controllers via modbus over RS232 and publish the data to an MQTT broker.
 #
 # Enable serial on the raspberry pi, I used this guide: https://pimylifeup.com/raspberry-pi-serial/
 # You may need to switch the serial device depending on what Pi or other device you are using.
@@ -10,7 +10,6 @@
 # MAX3232 breakout board is connected to the raspberry pi serial headers and to the charge controller RS232.
 #
 # If you are having trouble getting this to work, create an issue and I'll see if I can help.
-# UNTESTED
 
 import atexit
 import time
@@ -18,8 +17,8 @@ import json
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 from paho.mqtt import client as mqtt_client
 
-DELAY_BETWEEN_REQUESTS = 2    # Number of seconds to wait in between requests to the charge controller.
-JSON_OR_TEXT = "JSON"         # Output format, either "TEXT" or "JSON".
+DELAY_BETWEEN_REQUESTS = 3        # Number of seconds to wait in between requests to the charge controller.
+JSON_OR_TEXT = "TEXT"             # Output format, either "TEXT" or "JSON".
 MQTT_PORT = 1883
 MQTT_SERVER_ADDR = '192.168.2.50'
 MQTT_USER = 'CHANGE_ME!!!'
