@@ -1,4 +1,4 @@
-// Cole L - 1st May 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+// Cole L - 6th May 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
 // Originally based on https://github.com/fabaff/mqtt-panel
 
 const host = "192.168.2.50";
