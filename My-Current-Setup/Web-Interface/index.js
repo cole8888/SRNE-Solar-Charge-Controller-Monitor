@@ -53,6 +53,9 @@ const confirmElements = [undefined, undefined];
 // "Cancel" buttons of each confirmation modal.
 const cancelElements = [undefined, undefined];
 
+// "X" buttons of each confirmation modal.
+const xElements = [undefined, undefined];
+
 // UI plug switch is locked to it's current state and will not be updated by MQTT until unlocked.
 // Used to prevent the switch from switching back if we get an update just as someone toggles the switch.
 const lockedSwitch = [false, false, false, false, false];
@@ -644,6 +647,7 @@ function setupPlugs() {
       confirmElements[index].addEventListener("click", function () {
         togglePlug(index, false);
       });
+
       cancelElements[index] = document.getElementById(
         `${plugTopics[index]}Cancel`
       );
@@ -652,9 +656,17 @@ function setupPlugs() {
         lockedSwitch[index] = false;
       });
 
+	  xElements[index] = document.getElementById(
+        `${plugTopics[index]}ModalX`
+      );
+      xElements[index].addEventListener("click", function () {
+        plugElements[index].checked = true;
+        lockedSwitch[index] = false;
+      });
+
       // Only show the modal when turning the plug off.
       plugElements[index].addEventListener("click", function () {
-        if (plugElements[index].checked) {
+        if (plugElements[index].checked) { // Pressing toggle to trigger this flips the switch, invert logic.
           togglePlug(index, true);
         } else {
           lockedSwitch[index] = true;
