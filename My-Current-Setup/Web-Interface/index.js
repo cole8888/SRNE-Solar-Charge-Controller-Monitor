@@ -1,4 +1,4 @@
-// Cole L - 6th May 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+// Cole L - 9th May 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
 // Originally based on https://github.com/fabaff/mqtt-panel
 
 const host = "192.168.2.50";
@@ -10,61 +10,22 @@ const reconnectTimeout = 2000;
 const MQTT_USER = "CHANGE_ME!!!";
 const MQTT_PASS = "CHANGE_ME!!!";
 
+const NUM_CONTROLLERS = 3;
+
 const COST_PER_KWH = 0.1227; // In dollars.
 
-// Indicate when the last report from a charge controller had an error.
-const cc_down = [false, false, false];
-
-// Current watts for each charge controller. Used for cumulative total.
-const panelWatts = [0, 0, 0];
-
-// Plug IDs to use for calculating cumulative total.
-const plugsForTotalWatts = [
-  0, // 15AMP
-  1, // 20AMP
-  2, // Water Heater
+// Names of each plug used in the MQTT topics.
+const plugTopics = [
+  "15AMP",
+  "20AMP",
+  "WaterHeater",
+  "AC-Heater",
+  "HVAC",
+  "BOX",
+  "FAN",
+  "FRIDGE",
+  "PLANT",
 ];
-
-// Current watts for each plug. Used for cumulative total. (Some plugs are connected to other ones already, ignore them).
-const plugWatts = [
-  0, // 15AMP
-  0, // 20AMP
-  0, // Water Heater
-];
-
-// Total energy generated so far today of each charge controller. Used for cumulative daily total total.
-const totalPanelWatts = [0, 0, 0];
-
-// The expected current state of each plug.
-const plugStates = [undefined, undefined, undefined, undefined, undefined];
-
-// Hold the retrieved state of a plug before it is toggled.
-const preToggleState = [undefined, undefined, undefined, undefined, undefined];
-
-// Plug IDs which have toggle confirmation modals. (Stuff that would be bad to turn off by accident)
-const plugsToConfirmToggle = [
-  0, // 15AMP
-  1, // 20AMP
-];
-
-// "Yes" buttons of each confirmation modal.
-const confirmElements = [undefined, undefined];
-
-// "Cancel" buttons of each confirmation modal.
-const cancelElements = [undefined, undefined];
-
-// "X" buttons of each confirmation modal.
-const xElements = [undefined, undefined];
-
-// UI plug switch is locked to it's current state and will not be updated by MQTT until unlocked.
-// Used to prevent the switch from switching back if we get an update just as someone toggles the switch.
-const lockedSwitch = [false, false, false, false, false];
-
-// The plug switch elements.
-const plugElements = [undefined, undefined, undefined, undefined, undefined];
-
-// Record if there is ever a discrepancy between the expected and actual plug states.
-let plugError = false;
 
 const miscTopics = [
   "Temp", // Box Air Temperature
@@ -73,8 +34,57 @@ const miscTopics = [
   "Gas", // Box Air VOC Reading
 ];
 
-// Names of each plug used in the MQTT topics.
-const plugTopics = ["15AMP", "20AMP", "WaterHeater", "AC-Heater", "HVAC"];
+// Indicate when the last report from a charge controller had an error.
+const cc_down = Array(NUM_CONTROLLERS).fill(false);
+
+// Current watts for each charge controller. Used for cumulative total.
+const panelWatts = Array(NUM_CONTROLLERS).fill(0);
+
+// Plug IDs to use for calculating cumulative total.
+const plugsForTotalWatts = [
+  0, // 15AMP
+  1, // 20AMP
+  2, // Water Heater
+  5, // Box
+];
+
+// Current watts for each plug. Used for cumulative total. (Some plugs are connected to other ones already, ignore them).
+const plugWatts = Array(plugsForTotalWatts.length).fill(0);
+
+// Total energy generated so far today of each charge controller. Used for cumulative daily total total.
+const totalPanelWatts = Array(NUM_CONTROLLERS).fill(0);
+
+// The expected current state of each plug.
+const plugStates = Array(plugTopics.length).fill(undefined);
+
+// Hold the retrieved state of a plug before it is toggled.
+const preToggleState = Array(plugTopics.length).fill(undefined);
+
+// Plug IDs which have toggle confirmation modals. (Stuff that would be bad to turn off by accident)
+const plugsToConfirmToggle = [
+  0, // 15AMP
+  1, // 20AMP
+  5, // Box
+];
+
+// "Yes" buttons of each confirmation modal.
+const confirmElements = Array(plugsToConfirmToggle.length).fill(undefined);
+
+// "Cancel" buttons of each confirmation modal.
+const cancelElements = Array(plugsToConfirmToggle.length).fill(undefined);
+
+// "X" buttons of each confirmation modal.
+const xElements = Array(plugsToConfirmToggle.length).fill(undefined);
+
+// UI plug switch is locked to it's current state and will not be updated by MQTT until unlocked.
+// Used to prevent the switch from switching back if we get an update just as someone toggles the switch.
+const lockedSwitch = Array(plugTopics.length).fill(false);
+
+// The plug switch elements.
+const plugElements = Array(plugTopics.length).fill(undefined);
+
+// Record if there is ever a discrepancy between the expected and actual plug states.
+let plugError = false;
 
 // The id of all the badges relating to charge controller data.
 // Used to turn them all grey if that controller throws an error.
@@ -391,7 +401,10 @@ function whatToDoWithPlugs(receivedTopic, payload) {
     return topicBreakup[1] === topic;
   });
 
-  if (topicBreakup[2] === "STATE") {
+  if (plugId === -1) {
+    // Print any unknown messages.
+    console.log(`${receivedTopic}: ${payload}`);
+  } else if (topicBreakup[2] === "STATE") {
     const jsonPayload = JSON.parse(payload);
 
     if (jsonPayload.POWER === "ON") {
@@ -510,7 +523,10 @@ function whatToDoWithPlugQuery(receivedTopic, payload) {
     return topicBreakup[1] === topic;
   });
 
-  if (topicBreakup[2] === "POWER") {
+  if (plugId === -1) {
+    // Print any unknown messages.
+    console.log(`${receivedTopic}: ${payload}`);
+  } else if (topicBreakup[2] === "POWER") {
     if (payload === "ON") {
       preToggleState[plugId] = true;
     } else if (payload === "OFF") {
@@ -530,7 +546,10 @@ function whatToDoWithPlugCommand(receivedTopic, payload) {
     return topicBreakup[1] === topic;
   });
 
-  if (topicBreakup[2] === "Power") {
+  if (plugId === -1) {
+    // Print any unknown messages.
+    console.log(`${receivedTopic}: ${payload}`);
+  } else if (topicBreakup[2] === "Power") {
     if (payload === "TOGGLE") {
       plugElements[plugId].disabled = true;
     } else {
@@ -656,9 +675,7 @@ function setupPlugs() {
         lockedSwitch[index] = false;
       });
 
-	  xElements[index] = document.getElementById(
-        `${plugTopics[index]}ModalX`
-      );
+      xElements[index] = document.getElementById(`${plugTopics[index]}ModalX`);
       xElements[index].addEventListener("click", function () {
         plugElements[index].checked = true;
         lockedSwitch[index] = false;
@@ -666,7 +683,8 @@ function setupPlugs() {
 
       // Only show the modal when turning the plug off.
       plugElements[index].addEventListener("click", function () {
-        if (plugElements[index].checked) { // Pressing toggle to trigger this flips the switch, invert logic.
+        // Pressing toggle to trigger this flips the switch, invert logic.
+		if (plugElements[index].checked) {
           togglePlug(index, true);
         } else {
           lockedSwitch[index] = true;

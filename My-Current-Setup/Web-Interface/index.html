@@ -1,4 +1,4 @@
-<!-- Cole L - April 28th 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor -->
+<!-- Cole L - 9th May 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor -->
 <!-- Originally based on https://github.com/fabaff/mqtt-panel -->
 <!DOCTYPE html>
 <html lang="en">
@@ -290,10 +290,10 @@
 				</div>
 			</div>
 
-			<!-- Water Heater Plug, AC/Heater Plug, HVAC Plug -->
+			<!-- Water Heater Plug, AC/Heater Plug, HVAC Plug, Fan Plug -->
 			<div class="row">
 				<!-- Water Heater Plug Section -->
-				<div class="col-6 col-lg-4 col-md-4 col-sm-6 col-xs-6" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
+				<div class="col-6 col-lg-3 col-md-6" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
 					<div class="card mb-2 custom-card-dark">
 						<div class="d-flex flex-column align-items-center">
 							<div class="card-title" style="padding-top: 1rem; margin-bottom: 0rem;">
@@ -349,7 +349,7 @@
 				</div>
 
 				<!-- AC/Heater Plug Section -->
-				<div class="col-6 col-lg-4 col-md-4 col-sm-6" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
+				<div class="col-6 col-lg-3 col-md-6" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
 					<div class="card mb-2 custom-card-dark">
 						<div class="d-flex flex-column align-items-center">
 							<div class="card-title" style="padding-top: 1rem; margin-bottom: 0rem;">
@@ -405,7 +405,7 @@
 				</div>
 
 				<!-- HVAC Plug Section -->
-				<div class="col-12 col-lg-4 col-md-4 col-sm-12" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
+				<div class="col-6 col-lg-3 col-md-6" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
 					<div class="card mb-2 custom-card-dark">
 						<div class="d-flex flex-column align-items-center">
 							<div class="card-title" style="padding-top: 1rem; margin-bottom: 0rem;">
@@ -455,6 +455,252 @@
 							</div>
 							<div class="card-title">
 								<h6>Reactive Pwr: <span id="PlugHVACReactivePowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Fan Plug Section -->
+				<div class="col-6 col-lg-3 col-md-6" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
+					<div class="card mb-2 custom-card-dark">
+						<div class="d-flex flex-column align-items-center">
+							<div class="card-title" style="padding-top: 1rem; margin-bottom: 0rem;">
+								<h4><b><a href="http://192.168.2.180">Fan</a></b></h4>
+							</div>
+							<div class="form-check form-switch plugSwitch">
+								<input
+									class="form-check-input"
+									type="checkbox"
+									id="FANSwitch"
+									style="float: none; cursor: pointer;"
+								/>
+							</div>	
+						</div>
+						<div class="card-body", style="padding-top: 0rem; padding-bottom: 0.75rem;">
+							<div class="card-title">
+								<h6>State:<span id="PlugFANPowerStatusLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Power: <span id="PlugFANPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Current: <span id="PlugFANCurrentLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Voltage: <span id="PlugFANVoltageLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Today: <span id="PlugFANTodayPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Total: <span id="PlugFANTotalPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Power Factor: <span id="PlugFANFactorLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Apparent Pwr: <span id="PlugFANApparentPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Reactive Pwr: <span id="PlugFANReactivePowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Fridge Plug, Plant Plug, Box Plug -->
+			<div class="row">
+				<!-- Fridge Plug Section -->
+				<div class="col-6 col-lg-4 col-md-4 col-sm-6 col-xs-6" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
+					<div class="card mb-2 custom-card-dark">
+						<div class="d-flex flex-column align-items-center">
+							<div class="card-title" style="padding-top: 1rem; margin-bottom: 0rem;">
+								<h4><b><a href="http://192.168.2.136">Fridge</a></b></h4>
+							</div>
+							<div class="form-check form-switch plugSwitch">
+								<input
+									class="form-check-input"
+									type="checkbox"
+									id="FRIDGESwitch"
+									style="float: none; cursor: pointer;"
+								/>
+							</div>	
+						</div>
+						<div class="card-body", style="padding-top: 0rem; padding-bottom: 0.75rem;">
+							<div class="card-title">
+								<h6>State:<span id="PlugFRIDGEPowerStatusLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Power: <span id="PlugFRIDGEPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Current: <span id="PlugFRIDGECurrentLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Voltage: <span id="PlugFRIDGEVoltageLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Today: <span id="PlugFRIDGETodayPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Total: <span id="PlugFRIDGETotalPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Power Factor: <span id="PlugFRIDGEFactorLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Apparent Pwr: <span id="PlugFRIDGEApparentPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Reactive Pwr: <span id="PlugFRIDGEReactivePowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Plant Plug Section -->
+				<div class="col-6 col-lg-4 col-md-4 col-sm-6" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
+					<div class="card mb-2 custom-card-dark">
+						<div class="d-flex flex-column align-items-center">
+							<div class="card-title" style="padding-top: 1rem; margin-bottom: 0rem;">
+								<h4><b><a href="http://192.168.2.177">Plant</a></b></h4>
+							</div>
+							<div class="form-check form-switch plugSwitch">
+								<input
+									class="form-check-input"
+									type="checkbox"
+									id="PLANTSwitch"
+									style="float: none; cursor: pointer;"
+								/>
+							</div>	
+						</div>
+						<div class="card-body", style="padding-top: 0rem; padding-bottom: 0.75rem;">
+							<div class="card-title">
+								<h6>State:<span id="PlugPLANTPowerStatusLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Power: <span id="PlugPLANTPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Current: <span id="PlugPLANTCurrentLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Voltage: <span id="PlugPLANTVoltageLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Today: <span id="PlugPLANTTodayPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Total: <span id="PlugPLANTTotalPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Power Factor: <span id="PlugPLANTFactorLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Apparent Pwr: <span id="PlugPLANTApparentPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Reactive Pwr: <span id="PlugPLANTReactivePowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Box Plug Section -->
+				<div class="col-12 col-lg-4 col-md-4 col-sm-12" style="padding-top: 0.5rem; padding-right: 0.5rem; padding-left: 0.5rem;">
+					<div class="card mb-2 custom-card-dark">
+						<div class="d-flex flex-column align-items-center">
+							<div class="card-title" style="padding-top: 1rem; margin-bottom: 0rem;">
+								<h4><b><a href="http://192.168.2.63">Box</a></b></h4>
+							</div>
+							<div class="form-check form-switch plugSwitch">
+								<input
+									class="form-check-input"
+									type="checkbox"
+									id="BOXSwitch"
+									style="float: none; cursor: pointer;"
+								/>
+							</div>
+
+							<!-- Toggle confirmation modal -->
+							<div class="modal fade" id="modalBOX" tabindex="-1" aria-labelledby="BOXConfirmModalLabel" aria-hidden="true">
+								<div class="modal-dialog modal-dialog-centered">
+								<div class="modal-content custom-modal-light">
+									<div class="modal-header custom-modal-header-light">
+										<h1 class="modal-title fs-5 text-light" id="BOXConfirmModalLabel">Are you sure?</h1>
+										<button type="button" class="btn-close custom-btn-close-light" id="BOXModalX" data-bs-dismiss="modal" aria-label="Close"></button>
+									</div>
+									<div class="modal-body">
+										<p class="text-light">Are you sure you want to turn off the Box Plug?</p>
+									</div>
+									<div class="modal-footer custom-modal-header-light">
+										<button type="button" class="btn btn-secondary" id="BOXCancel" data-bs-dismiss="modal">Cancel</button>
+										<button type="button" class="btn btn-primary" id="BOXConfirm" data-bs-dismiss="modal">Yes</button>
+									</div>
+								</div>
+								</div>
+							</div>
+						</div>
+						<div class="card-body", style="padding-top: 0rem; padding-bottom: 0.75rem;">
+							<div class="card-title">
+								<h6>State:<span id="PlugBOXPowerStatusLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Power: <span id="PlugBOXPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Current: <span id="PlugBOXCurrentLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Voltage: <span id="PlugBOXVoltageLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Today: <span id="PlugBOXTodayPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Total: <span id="PlugBOXTotalPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Power Factor: <span id="PlugBOXFactorLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Apparent Pwr: <span id="PlugBOXApparentPowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
+								<hr style="margin-top: -4px; margin-bottom: -4px;">
+							</div>
+							<div class="card-title">
+								<h6>Reactive Pwr: <span id="PlugBOXReactivePowerLabel" class="badge bg-secondary text-light" style="float: right; margin-top: -0.5px;">⋅⋅⋅</span></h6>
 							</div>
 						</div>
 					</div>
