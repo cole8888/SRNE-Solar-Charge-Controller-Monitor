@@ -62,7 +62,7 @@
     Other settings.
 */
 #define NUM_CHARGE_CONTROLLERS 3                             // Number of charge controllers connected. Max of 6 without adjusting program.
-#define NUM_HW_SERIAL 1                                      // Number of charge controllers using HW Serial. Max of 2. 3 should be possible, but you will need to adjust the program.
+#define NUM_HW_SERIAL 2                                      // Number of charge controllers using HW Serial. Max of 2. 3 should be possible, but you will need to adjust the program.
 #define NUM_SW_SERIAL NUM_CHARGE_CONTROLLERS - NUM_HW_SERIAL // Number of charge controllers using software serial. Some controllers may not like SW serial, use HW instead.
 #define REQUEST_DELAY 3000                                   // Delay in ms between rounds of polling all the charge controllers.
 #define WIFI_SINGLE_WAIT_DELAY 500                           // Delay in ms for a single wait for the wifi to connect (time for a "." to show up on console).
@@ -146,7 +146,7 @@ const uint8_t serialPins[2][6] = {{16, 18, 21, 34, 35, 36}, {17, 19, 22, 23, 32,
 
     If only using SoftwareSerial, set this to: {}
 */
-const uint8_t hwSerialIndexes[NUM_HW_SERIAL] = {2};
+const uint8_t hwSerialIndexes[NUM_HW_SERIAL] = {0, 2};
 
 // Charge controller index we are talking to / publishing data from at the moment.
 uint8_t currentCC;

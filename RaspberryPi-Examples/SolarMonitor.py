@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Cole L - 1st May 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
+# Cole L - 17th May 2023 - https://github.com/cole8888/SRNE-Solar-Charge-Controller-Monitor
 #
 # Used to gather data from SRNE charge controllers via modbus over RS232.
 #
@@ -214,7 +214,7 @@ def convertToJson(response, error):
                 "dailyAmpHours": response.registers[18],
                 "totalAmpHours": round(float((response.registers[26]*65536 + response.registers[27])*0.001), 3),
                 "dailyPower": round(float(response.registers[20]*0.001), 3),
-                "totalPower": str(round(float((response.registers[30]*65536 + response.registers[31])*0.001), 3))
+                "totalPower": round(float((response.registers[30]*65536 + response.registers[31])*0.001), 3)
             },
             "faults": faults
         }
